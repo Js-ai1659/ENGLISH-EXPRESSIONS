@@ -28,6 +28,7 @@ const quizModeEl   = $('quiz-mode');
 
 const cardInner      = $('card-inner');
 const flashcard      = $('flashcard');
+const cardEmoji      = $('card-emoji');
 const cardExpression = $('card-expression');
 const valMeaning     = $('val-meaning');
 const valExplanation = $('val-explanation');
@@ -62,6 +63,7 @@ const toast        = $('toast');
    ============================================================ */
 const ALIASES = {
   expression:  ['expression', 'expresion', 'word', 'palabra', 'phrase', 'frase', 'term', 'termino'],
+  emoji:       ['emoji', 'emoticono', 'icon', 'icono', 'imagen', 'image'],
   meaning:     ['meaning', 'significado', 'definition', 'definicion'],
   explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle'],
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
@@ -108,6 +110,7 @@ function parseExcel(file) {
       const cards = rows
         .map(r => ({
           expression:  String(r[colMap.expression]  || '').trim(),
+          emoji:       String(r[colMap.emoji]       || '').trim(),
           meaning:     String(r[colMap.meaning]     || '').trim(),
           explanation: String(r[colMap.explanation] || '').trim(),
           synonyms:    String(r[colMap.synonyms]    || '').trim(),
@@ -175,6 +178,8 @@ function renderFlipCard() {
   state.isFlipped = false;
   cardInner.classList.remove('flipped');
 
+  cardEmoji.textContent      = card.emoji || '';
+  cardEmoji.hidden           = !card.emoji;
   cardExpression.textContent = card.expression;
   valMeaning.textContent     = card.meaning     || '—';
   valExplanation.textContent = card.explanation || '—';
