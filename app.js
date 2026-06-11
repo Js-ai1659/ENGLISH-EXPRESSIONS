@@ -26,16 +26,20 @@ const modeBtns     = document.querySelectorAll('.mode-btn');
 const flipModeEl   = $('flip-mode');
 const quizModeEl   = $('quiz-mode');
 
-const cardInner    = $('card-inner');
-const flashcard    = $('flashcard');
+const cardInner      = $('card-inner');
+const flashcard      = $('flashcard');
+const cardEmoji      = $('card-emoji');
 const cardExpression = $('card-expression');
-const valTranslation = $('val-translation');
-const valMeaning   = $('val-meaning');
-const valExample   = $('val-example');
-const valSynonyms  = $('val-synonyms');
-const backMeaning  = $('back-meaning');
-const backExample  = $('back-example');
-const backSynonyms = $('back-synonyms');
+const valMeaning     = $('val-meaning');
+const valExplanation = $('val-explanation');
+const valSynonyms    = $('val-synonyms');
+const valExample     = $('val-example');
+const valIpa         = $('val-ipa');
+const backMeaning    = $('back-meaning');
+const backExplanation = $('back-explanation');
+const backSynonyms   = $('back-synonyms');
+const backExample    = $('back-example');
+const backIpa        = $('back-ipa');
 
 const btnPrev      = $('btn-prev');
 const btnNext      = $('btn-next');
@@ -58,11 +62,13 @@ const toast        = $('toast');
    EXCEL COLUMN ALIASES  (lowercase, accents removed)
    ============================================================ */
 const ALIASES = {
-  expression:  ['expression', 'expresion', 'palabra', 'word', 'phrase', 'frase', 'term', 'termino'],
-  translation: ['translation', 'traduccion', 'espanol', 'spanish', 'translate', 'traducir'],
-  meaning:     ['meaning', 'significado', 'definition', 'definicion', 'descripcion', 'description', 'explanation', 'explicacion'],
+  expression:  ['expression', 'expresion', 'word', 'palabra', 'phrase', 'frase', 'term', 'termino'],
+  emoji:       ['emoji', 'emoticono', 'icon', 'icono', 'imagen', 'image'],
+  meaning:     ['meaning', 'significado', 'definition', 'definicion'],
+  explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle'],
+  synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
-  synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related']
+  ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica']
 };
 
 function removeAccents(s) {
@@ -104,10 +110,12 @@ function parseExcel(file) {
       const cards = rows
         .map(r => ({
           expression:  String(r[colMap.expression]  || '').trim(),
-          translation: String(r[colMap.translation] || '').trim(),
+          emoji:       String(r[colMap.emoji]       || '').trim(),
           meaning:     String(r[colMap.meaning]     || '').trim(),
+          explanation: String(r[colMap.explanation] || '').trim(),
+          synonyms:    String(r[colMap.synonyms]    || '').trim(),
           example:     String(r[colMap.example]     || '').trim(),
-          synonyms:    String(r[colMap.synonyms]    || '').trim()
+          ipa:         String(r[colMap.ipa]         || '').trim()
         }))
         .filter(c => c.expression);
 
@@ -170,15 +178,20 @@ function renderFlipCard() {
   state.isFlipped = false;
   cardInner.classList.remove('flipped');
 
+  cardEmoji.textContent      = card.emoji || '';
+  cardEmoji.hidden           = !card.emoji;
   cardExpression.textContent = card.expression;
-  valTranslation.textContent = card.translation || '—';
   valMeaning.textContent     = card.meaning     || '—';
-  valExample.textContent     = card.example     || '—';
+  valExplanation.textContent = card.explanation || '—';
   valSynonyms.textContent    = card.synonyms    || '—';
+  valExample.textContent     = card.example     || '—';
+  valIpa.textContent         = card.ipa         || '—';
 
-  backMeaning.hidden  = !card.meaning;
-  backExample.hidden  = !card.example;
-  backSynonyms.hidden = !card.synonyms;
+  backMeaning.hidden     = !card.meaning;
+  backExplanation.hidden = !card.explanation;
+  backSynonyms.hidden    = !card.synonyms;
+  backExample.hidden     = !card.example;
+  backIpa.hidden         = !card.ipa;
 
   btnPrev.disabled = state.currentIndex === 0;
   btnNext.disabled = state.currentIndex === state.cards.length - 1;
@@ -216,10 +229,10 @@ function renderQuiz() {
 }
 
 function buildQuizOptions(correct) {
-  const correctAnswer = correct.translation || correct.expression;
+  const correctAnswer = correct.meaning || correct.expression;
   const pool = state.cards
-    .filter(c => c !== correct && (c.translation || c.expression))
-    .map(c => c.translation || c.expression);
+    .filter(c => c !== correct && (c.meaning || c.expression))
+    .map(c => c.meaning || c.expression);
 
   const wrongs = shuffle(pool).slice(0, 3);
   return shuffle([correctAnswer, ...wrongs]);
@@ -230,7 +243,7 @@ function answerQuiz(btn, chosen, card) {
   state.quiz.answered = true;
   state.quiz.total++;
 
-  const correctAnswer = card.translation || card.expression;
+  const correctAnswer = card.meaning || card.expression;
   const isCorrect = chosen === correctAnswer;
 
   if (isCorrect) {
@@ -249,7 +262,7 @@ function answerQuiz(btn, chosen, card) {
   quizFeedback.className = `quiz-feedback ${isCorrect ? 'correct-feedback' : 'wrong-feedback'}`;
 
   let feedbackText = isCorrect ? '✅ ¡Correcto!' : `❌ Incorrecto. La respuesta es: "${correctAnswer}"`;
-  if (card.meaning) feedbackText += `\n${card.meaning}`;
+  if (card.explanation) feedbackText += `\n${card.explanation}`;
   quizFeedback.textContent = feedbackText;
 
   scoreLabel.textContent = `Puntuación: ${state.quiz.score}/${state.quiz.total}`;

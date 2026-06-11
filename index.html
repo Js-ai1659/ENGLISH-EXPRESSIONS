@@ -30,7 +30,7 @@
       <p>Arrastra y suelta aquí, o usa el botón <strong>Importar Excel</strong></p>
       <p class="hint">
         Columnas esperadas (en cualquier orden):<br />
-        <code>Expression · Translation · Meaning · Example · Synonyms</code>
+        <code>WORD-EXPRESSION · EMOJI · MEANING · EXPLANATION · SYNONYMS · EXAMPLE_SENTENCE · IPA</code>
       </p>
     </div>
     <button class="btn btn-demo" id="btn-demo">Usar datos de ejemplo</button>
@@ -65,6 +65,7 @@
             <!-- FRONT -->
             <div class="card-front">
               <span class="card-face-label">Expresión</span>
+              <p class="card-emoji" id="card-emoji"></p>
               <p class="card-expression" id="card-expression"></p>
               <span class="flip-hint">Haz clic para ver la respuesta ↩</span>
             </div>
@@ -73,21 +74,25 @@
             <div class="card-back">
               <span class="card-face-label">Respuesta</span>
               <div class="back-grid" id="back-grid">
-                <div class="back-item" id="back-translation">
-                  <span class="back-label">Traducción</span>
-                  <p class="back-value" id="val-translation"></p>
-                </div>
                 <div class="back-item" id="back-meaning">
-                  <span class="back-label">Significado</span>
+                  <span class="back-label">Meaning</span>
                   <p class="back-value" id="val-meaning"></p>
                 </div>
-                <div class="back-item" id="back-example">
-                  <span class="back-label">Ejemplo</span>
-                  <p class="back-value" id="val-example"></p>
+                <div class="back-item" id="back-explanation">
+                  <span class="back-label">Explanation</span>
+                  <p class="back-value" id="val-explanation"></p>
                 </div>
                 <div class="back-item" id="back-synonyms">
-                  <span class="back-label">Sinónimos</span>
+                  <span class="back-label">Synonyms</span>
                   <p class="back-value" id="val-synonyms"></p>
+                </div>
+                <div class="back-item" id="back-example">
+                  <span class="back-label">Example</span>
+                  <p class="back-value" id="val-example"></p>
+                </div>
+                <div class="back-item" id="back-ipa">
+                  <span class="back-label">IPA</span>
+                  <p class="back-value ipa-value" id="val-ipa"></p>
                 </div>
               </div>
             </div>
@@ -106,7 +111,7 @@
     <!-- ========== QUIZ MODE ========== -->
     <div id="quiz-mode" hidden>
       <div class="quiz-card">
-        <span class="card-face-label">¿Cuál es la traducción?</span>
+        <span class="card-face-label">¿Cuál es el significado?</span>
         <p class="quiz-expression" id="quiz-expression"></p>
       </div>
 

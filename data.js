@@ -1,87 +1,75 @@
-/* Demo flashcard data loaded when the user clicks "Usar datos de ejemplo" */
+/* Demo flashcard data — estructura: WORD-EXPRESSION, EMOJI, MEANING, EXPLANATION, SYNONYMS, EXAMPLE_SENTENCE, IPA */
 const DEMO_CARDS = [
   {
-    expression: "Break the ice",
-    translation: "Romper el hielo",
-    meaning: "Hacer algo para aliviar la tensión o iniciar una conversación en una situación social incómoda.",
-    example: "He told a joke to break the ice at the meeting.",
-    synonyms: "Start a conversation, warm up the room"
+    expression:  "Cat",
+    emoji:       "🐱",
+    meaning:     "A small domesticated carnivorous mammal",
+    explanation: "Cats are common household pets known for being independent and curious.",
+    synonyms:    "Feline, kitty, tomcat",
+    example:     "My cat sleeps on the sofa all day.",
+    ipa:         "/kæt/"
   },
   {
-    expression: "Hit the nail on the head",
-    translation: "Dar en el clavo",
-    meaning: "Decir o hacer exactamente lo correcto; acertar completamente.",
-    example: "You hit the nail on the head with that analysis.",
-    synonyms: "Be spot on, be exactly right"
+    expression:  "Rain",
+    emoji:       "🌧️",
+    meaning:     "Water falling from clouds in drops",
+    explanation: "Precipitation in the form of liquid water droplets that fall from the atmosphere.",
+    synonyms:    "Downpour, drizzle, shower",
+    example:     "It's going to rain all weekend according to the forecast.",
+    ipa:         "/reɪn/"
   },
   {
-    expression: "Under the weather",
-    translation: "Sentirse mal / estar enfermo",
-    meaning: "No sentirse bien de salud, estar un poco enfermo.",
-    example: "I'm feeling a bit under the weather today, so I'll stay home.",
-    synonyms: "Not feeling well, feeling sick"
+    expression:  "Book",
+    emoji:       "📚",
+    meaning:     "A written or printed work consisting of pages",
+    explanation: "A set of written or printed pages bound together, used for reading or reference.",
+    synonyms:    "Novel, volume, publication",
+    example:     "She read the whole book in one sitting.",
+    ipa:         "/bʊk/"
   },
   {
-    expression: "Bite the bullet",
-    translation: "Aguantar el tipo / tragarse el sapo",
-    meaning: "Enfrentar una situación dolorosa o difícil con valentía.",
-    example: "I hate going to the dentist, but I bit the bullet and made an appointment.",
-    synonyms: "Face the music, tough it out"
+    expression:  "Fire",
+    emoji:       "🔥",
+    meaning:     "The process of burning that produces light and heat",
+    explanation: "A rapid chemical reaction between a fuel and oxygen that releases heat, light, and gases.",
+    synonyms:    "Flame, blaze, inferno",
+    example:     "They sat around the fire to keep warm.",
+    ipa:         "/faɪər/"
   },
   {
-    expression: "Spill the beans",
-    translation: "Revelar el secreto",
-    meaning: "Divulgar información confidencial o revelar una sorpresa antes de tiempo.",
-    example: "Don't spill the beans about the surprise party!",
-    synonyms: "Let the cat out of the bag, give away the secret"
+    expression:  "Star",
+    emoji:       "⭐",
+    meaning:     "A luminous ball of gas, mainly hydrogen and helium",
+    explanation: "A massive, luminous sphere of plasma held together by gravity, visible as a point of light in the night sky.",
+    synonyms:    "Sun, celestial body",
+    example:     "You can see thousands of stars on a clear night.",
+    ipa:         "/stɑːr/"
   },
   {
-    expression: "Once in a blue moon",
-    translation: "De vez en cuando / muy raramente",
-    meaning: "Con muy poca frecuencia; algo que ocurre rara vez.",
-    example: "I only eat fast food once in a blue moon.",
-    synonyms: "Rarely, seldom, hardly ever"
+    expression:  "Break the ice",
+    emoji:       "",
+    meaning:     "To do or say something to relieve tension",
+    explanation: "Used when someone does something to make people feel more comfortable in a social situation.",
+    synonyms:    "Warm up, ease the tension, get the ball rolling",
+    example:     "He told a joke to break the ice at the beginning of the meeting.",
+    ipa:         "/breɪk ðə aɪs/"
   },
   {
-    expression: "Cost an arm and a leg",
-    translation: "Costar un ojo de la cara",
-    meaning: "Ser extremadamente caro.",
-    example: "That new phone costs an arm and a leg.",
-    synonyms: "Be very expensive, cost a fortune"
+    expression:  "Under the weather",
+    emoji:       "",
+    meaning:     "Feeling slightly ill or unwell",
+    explanation: "An informal way to say you are not feeling well, often used for minor illnesses.",
+    synonyms:    "Not feeling well, feeling off, out of sorts",
+    example:     "I'm feeling a bit under the weather today, so I'll work from home.",
+    ipa:         "/ˈʌndər ðə ˈwɛðər/"
   },
   {
-    expression: "The ball is in your court",
-    translation: "La pelota está en tu tejado",
-    meaning: "Es tu turno de tomar una decisión o actuar.",
-    example: "I've made my offer; now the ball is in your court.",
-    synonyms: "Your move, up to you"
-  },
-  {
-    expression: "Let the cat out of the bag",
-    translation: "Revelar un secreto sin querer",
-    meaning: "Divulgar accidentalmente información que debía mantenerse en secreto.",
-    example: "He let the cat out of the bag when he mentioned the surprise trip.",
-    synonyms: "Spill the beans, give it away"
-  },
-  {
-    expression: "Bite off more than you can chew",
-    translation: "Abarcar más de lo que se puede",
-    meaning: "Intentar hacer algo que está más allá de tus capacidades o tiempo disponible.",
-    example: "Taking four courses while working full-time is biting off more than you can chew.",
-    synonyms: "Overcommit, take on too much"
-  },
-  {
-    expression: "Kill two birds with one stone",
-    translation: "Matar dos pájaros de un tiro",
-    meaning: "Resolver dos problemas o completar dos tareas con una sola acción.",
-    example: "I'll stop by the grocery store on my way home — kill two birds with one stone.",
-    synonyms: "Accomplish two things at once"
-  },
-  {
-    expression: "Get out of hand",
-    translation: "Salirse de control",
-    meaning: "Perder el control; volverse imposible de manejar.",
-    example: "The argument got out of hand quickly.",
-    synonyms: "Get out of control, spiral out of control"
+    expression:  "Spill the beans",
+    emoji:       "",
+    meaning:     "To reveal secret information accidentally",
+    explanation: "To tell people something that was supposed to be kept secret.",
+    synonyms:    "Let the cat out of the bag, give it away, blow the secret",
+    example:     "Don't spill the beans about the surprise party — she doesn't know yet!",
+    ipa:         "/spɪl ðə biːnz/"
   }
 ];
