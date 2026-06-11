@@ -3,47 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>English Expressions</title>
+  <title>English Flashcards</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>🇬🇧 English Expressions</h1>
-      <p class="subtitle">Consulta frases y expresiones comunes en inglés</p>
-    </header>
 
-    <div class="search-bar">
-      <input
-        type="text"
-        id="search"
-        placeholder="Busca una expresión, ej: break the ice..."
-        autocomplete="off"
-      />
-      <button id="clear-btn" title="Limpiar">✕</button>
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <h1>English Flashcards</h1>
+    </div>
+    <div class="header-right">
+      <label class="btn btn-upload" title="Importar archivo Excel (.xlsx / .xls)">
+        📂 Importar Excel
+        <input type="file" id="file-input" accept=".xlsx,.xls" hidden />
+      </label>
+    </div>
+  </header>
+
+  <!-- WELCOME / DROP ZONE -->
+  <section class="welcome-section" id="welcome-section">
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-icon">📊</div>
+      <h2>Sube tu archivo Excel</h2>
+      <p>Arrastra y suelta aquí, o usa el botón <strong>Importar Excel</strong></p>
+      <p class="hint">
+        Columnas esperadas (en cualquier orden):<br />
+        <code>Expression · Translation · Meaning · Example · Synonyms</code>
+      </p>
+    </div>
+    <button class="btn btn-demo" id="btn-demo">Usar datos de ejemplo</button>
+  </section>
+
+  <!-- MAIN APP (visible after loading cards) -->
+  <main class="app-main" id="app-main" hidden>
+
+    <!-- MODE SELECTOR -->
+    <div class="mode-selector">
+      <button class="mode-btn active" id="mode-flip" data-mode="flip">🔄 Voltear tarjeta</button>
+      <button class="mode-btn" id="mode-quiz" data-mode="quiz">🧠 Quiz</button>
     </div>
 
-    <div class="filters">
-      <button class="filter-btn active" data-category="all">Todas</button>
-      <button class="filter-btn" data-category="greetings">Saludos</button>
-      <button class="filter-btn" data-category="business">Negocios</button>
-      <button class="filter-btn" data-category="emotions">Emociones</button>
-      <button class="filter-btn" data-category="idioms">Modismos</button>
-      <button class="filter-btn" data-category="social">Social</button>
-      <button class="filter-btn" data-category="time">Tiempo</button>
-    </div>
-
-    <div id="results-count" class="results-count"></div>
-
-    <div id="cards-container" class="cards-container"></div>
-
-    <div id="modal" class="modal hidden">
-      <div class="modal-content">
-        <button class="modal-close" id="modal-close">✕</button>
-        <div id="modal-body"></div>
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar-container">
+      <div class="progress-info">
+        <span id="card-counter">1 / 1</span>
+        <span id="score-label"></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
       </div>
     </div>
+
+    <!-- ========== FLIP CARD MODE ========== -->
+    <div id="flip-mode">
+      <div class="card-scene">
+        <div class="card" id="flashcard" tabindex="0" role="button" aria-label="Tarjeta de vocabulario, haz clic para voltear">
+          <div class="card-inner" id="card-inner">
+
+            <!-- FRONT -->
+            <div class="card-front">
+              <span class="card-face-label">Expresión</span>
+              <p class="card-expression" id="card-expression"></p>
+              <span class="flip-hint">Haz clic para ver la respuesta ↩</span>
+            </div>
+
+            <!-- BACK -->
+            <div class="card-back">
+              <span class="card-face-label">Respuesta</span>
+              <div class="back-grid" id="back-grid">
+                <div class="back-item" id="back-translation">
+                  <span class="back-label">Traducción</span>
+                  <p class="back-value" id="val-translation"></p>
+                </div>
+                <div class="back-item" id="back-meaning">
+                  <span class="back-label">Significado</span>
+                  <p class="back-value" id="val-meaning"></p>
+                </div>
+                <div class="back-item" id="back-example">
+                  <span class="back-label">Ejemplo</span>
+                  <p class="back-value" id="val-example"></p>
+                </div>
+                <div class="back-item" id="back-synonyms">
+                  <span class="back-label">Sinónimos</span>
+                  <p class="back-value" id="val-synonyms"></p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-controls">
+        <button class="btn btn-nav" id="btn-prev">← Anterior</button>
+        <button class="btn btn-secondary" id="btn-shuffle">🔀 Mezclar</button>
+        <button class="btn btn-nav" id="btn-next">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ========== QUIZ MODE ========== -->
+    <div id="quiz-mode" hidden>
+      <div class="quiz-card">
+        <span class="card-face-label">¿Cuál es la traducción?</span>
+        <p class="quiz-expression" id="quiz-expression"></p>
+      </div>
+
+      <div class="quiz-options" id="quiz-options"></div>
+
+      <div class="quiz-feedback" id="quiz-feedback" hidden></div>
+
+      <div class="quiz-nav">
+        <button class="btn btn-nav" id="btn-quiz-next" hidden>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- BOTTOM CONTROLS -->
+    <div class="bottom-controls">
+      <button class="btn btn-ghost" id="btn-restart">🔄 Reiniciar</button>
+    </div>
+
+  </main>
+
+  <!-- COMPLETION SCREEN -->
+  <div class="completion-screen" id="completion-screen" hidden>
+    <div class="completion-emoji">🎉</div>
+    <h2>¡Completado!</h2>
+    <p id="completion-msg"></p>
+    <button class="btn btn-primary" id="btn-restart-final">🔄 Volver a empezar</button>
   </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
   <script src="data.js"></script>
   <script src="app.js"></script>

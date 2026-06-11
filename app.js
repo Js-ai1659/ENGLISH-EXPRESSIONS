@@ -1,136 +1,389 @@
-const searchInput = document.getElementById("search");
-const clearBtn = document.getElementById("clear-btn");
-const cardsContainer = document.getElementById("cards-container");
-const resultsCount = document.getElementById("results-count");
-const modal = document.getElementById("modal");
-const modalBody = document.getElementById("modal-body");
-const modalClose = document.getElementById("modal-close");
-const filterBtns = document.querySelectorAll(".filter-btn");
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  cards: [],
+  currentIndex: 0,
+  mode: 'flip',
+  isFlipped: false,
+  quiz: { score: 0, total: 0, answered: false }
+};
 
-let currentCategory = "all";
-let currentQuery = "";
+/* ============================================================
+   DOM REFS
+   ============================================================ */
+const $ = id => document.getElementById(id);
 
-function levelLabel(level) {
-  const map = { beginner: "Básico", intermediate: "Intermedio", advanced: "Avanzado" };
-  return map[level] || level;
+const welcomeSection  = $('welcome-section');
+const appMain         = $('app-main');
+const completionScreen = $('completion-screen');
+
+const fileInput    = $('file-input');
+const dropZone     = $('drop-zone');
+const btnDemo      = $('btn-demo');
+
+const modeBtns     = document.querySelectorAll('.mode-btn');
+const flipModeEl   = $('flip-mode');
+const quizModeEl   = $('quiz-mode');
+
+const cardInner    = $('card-inner');
+const flashcard    = $('flashcard');
+const cardExpression = $('card-expression');
+const valTranslation = $('val-translation');
+const valMeaning   = $('val-meaning');
+const valExample   = $('val-example');
+const valSynonyms  = $('val-synonyms');
+const backMeaning  = $('back-meaning');
+const backExample  = $('back-example');
+const backSynonyms = $('back-synonyms');
+
+const btnPrev      = $('btn-prev');
+const btnNext      = $('btn-next');
+const btnShuffle   = $('btn-shuffle');
+const btnRestart   = $('btn-restart');
+const btnRestartFinal = $('btn-restart-final');
+
+const quizExpression = $('quiz-expression');
+const quizOptions    = $('quiz-options');
+const quizFeedback   = $('quiz-feedback');
+const btnQuizNext    = $('btn-quiz-next');
+
+const cardCounter  = $('card-counter');
+const scoreLabel   = $('score-label');
+const progressFill = $('progress-fill');
+const completionMsg = $('completion-msg');
+const toast        = $('toast');
+
+/* ============================================================
+   EXCEL COLUMN ALIASES  (lowercase, accents removed)
+   ============================================================ */
+const ALIASES = {
+  expression:  ['expression', 'expresion', 'palabra', 'word', 'phrase', 'frase', 'term', 'termino'],
+  translation: ['translation', 'traduccion', 'espanol', 'spanish', 'translate', 'traducir'],
+  meaning:     ['meaning', 'significado', 'definition', 'definicion', 'descripcion', 'description', 'explanation', 'explicacion'],
+  example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
+  synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related']
+};
+
+function removeAccents(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
-function levelClass(level) {
-  return `level-${level}`;
+function matchField(header) {
+  const h = removeAccents(header);
+  for (const [field, aliases] of Object.entries(ALIASES)) {
+    if (aliases.some(a => h.includes(a))) return field;
+  }
+  return null;
 }
 
-function highlight(text, query) {
-  if (!query) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return text.replace(new RegExp(`(${escaped})`, "gi"), "<mark>$1</mark>");
+/* ============================================================
+   EXCEL PARSING
+   ============================================================ */
+function parseExcel(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      if (!rows.length) { showToast('El archivo está vacío.'); return; }
+
+      const colMap = {};
+      Object.keys(rows[0]).forEach(h => {
+        const field = matchField(h);
+        if (field && !colMap[field]) colMap[field] = h;
+      });
+
+      if (!colMap.expression) {
+        showToast('No se encontró columna "Expression". Verifica los encabezados.');
+        return;
+      }
+
+      const cards = rows
+        .map(r => ({
+          expression:  String(r[colMap.expression]  || '').trim(),
+          translation: String(r[colMap.translation] || '').trim(),
+          meaning:     String(r[colMap.meaning]     || '').trim(),
+          example:     String(r[colMap.example]     || '').trim(),
+          synonyms:    String(r[colMap.synonyms]    || '').trim()
+        }))
+        .filter(c => c.expression);
+
+      if (!cards.length) { showToast('No se encontraron filas con datos.'); return; }
+
+      loadCards(cards);
+      showToast(`✅ ${cards.length} tarjetas cargadas`);
+    } catch {
+      showToast('Error al leer el archivo. ¿Es un .xlsx válido?');
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
-function renderCards(list, query) {
-  if (list.length === 0) {
-    cardsContainer.innerHTML = `<div class="empty-state">No se encontraron expresiones para "<strong>${query || currentCategory}</strong>"</div>`;
-    resultsCount.textContent = "";
-    return;
+/* ============================================================
+   LOAD CARDS
+   ============================================================ */
+function loadCards(cards) {
+  state.cards = cards;
+  state.currentIndex = 0;
+  state.isFlipped = false;
+  state.quiz = { score: 0, total: 0, answered: false };
+
+  welcomeSection.hidden = true;
+  completionScreen.hidden = true;
+  appMain.hidden = false;
+
+  renderMode();
+}
+
+/* ============================================================
+   MODE SWITCHING
+   ============================================================ */
+function setMode(mode) {
+  state.mode = mode;
+  state.currentIndex = 0;
+  state.isFlipped = false;
+  state.quiz = { score: 0, total: 0, answered: false };
+
+  modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  flipModeEl.hidden = mode !== 'flip';
+  quizModeEl.hidden = mode !== 'quiz';
+
+  renderMode();
+}
+
+function renderMode() {
+  if (state.mode === 'flip') renderFlipCard();
+  else renderQuiz();
+}
+
+/* ============================================================
+   FLIP CARD
+   ============================================================ */
+function renderFlipCard() {
+  const card = state.cards[state.currentIndex];
+  if (!card) return;
+
+  // Reset flip
+  state.isFlipped = false;
+  cardInner.classList.remove('flipped');
+
+  cardExpression.textContent = card.expression;
+  valTranslation.textContent = card.translation || '—';
+  valMeaning.textContent     = card.meaning     || '—';
+  valExample.textContent     = card.example     || '—';
+  valSynonyms.textContent    = card.synonyms    || '—';
+
+  backMeaning.hidden  = !card.meaning;
+  backExample.hidden  = !card.example;
+  backSynonyms.hidden = !card.synonyms;
+
+  btnPrev.disabled = state.currentIndex === 0;
+  btnNext.disabled = state.currentIndex === state.cards.length - 1;
+  updateProgress();
+}
+
+function flipCard() {
+  state.isFlipped = !state.isFlipped;
+  cardInner.classList.toggle('flipped', state.isFlipped);
+}
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+function renderQuiz() {
+  const card = state.cards[state.currentIndex];
+  if (!card) return;
+
+  state.quiz.answered = false;
+  quizExpression.textContent = card.expression;
+  quizFeedback.hidden = true;
+  btnQuizNext.hidden = true;
+
+  const options = buildQuizOptions(card);
+  quizOptions.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => answerQuiz(btn, opt, card));
+    quizOptions.appendChild(btn);
+  });
+
+  updateProgress();
+}
+
+function buildQuizOptions(correct) {
+  const correctAnswer = correct.translation || correct.expression;
+  const pool = state.cards
+    .filter(c => c !== correct && (c.translation || c.expression))
+    .map(c => c.translation || c.expression);
+
+  const wrongs = shuffle(pool).slice(0, 3);
+  return shuffle([correctAnswer, ...wrongs]);
+}
+
+function answerQuiz(btn, chosen, card) {
+  if (state.quiz.answered) return;
+  state.quiz.answered = true;
+  state.quiz.total++;
+
+  const correctAnswer = card.translation || card.expression;
+  const isCorrect = chosen === correctAnswer;
+
+  if (isCorrect) {
+    state.quiz.score++;
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+    quizOptions.querySelectorAll('.quiz-option').forEach(b => {
+      if (b.textContent === correctAnswer) b.classList.add('correct');
+    });
   }
 
-  resultsCount.textContent = `${list.length} expresión${list.length !== 1 ? "es" : ""} encontrada${list.length !== 1 ? "s" : ""}`;
+  quizOptions.querySelectorAll('.quiz-option').forEach(b => b.disabled = true);
 
-  cardsContainer.innerHTML = list
-    .map(
-      (item) => `
-    <div class="card" data-id="${item.id}" tabindex="0" role="button" aria-label="Ver detalles de: ${item.expression}">
-      <div class="card-header">
-        <span class="expression">${highlight(item.expression, query)}</span>
-        <span class="level-badge ${levelClass(item.level)}">${levelLabel(item.level)}</span>
-      </div>
-      <div class="translation">${highlight(item.translation, query)}</div>
-      <div class="meaning">${highlight(item.meaning, query)}</div>
-    </div>
-  `
-    )
-    .join("");
+  quizFeedback.hidden = false;
+  quizFeedback.className = `quiz-feedback ${isCorrect ? 'correct-feedback' : 'wrong-feedback'}`;
 
-  cardsContainer.querySelectorAll(".card").forEach((card) => {
-    card.addEventListener("click", () => openModal(Number(card.dataset.id)));
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") openModal(Number(card.dataset.id));
-    });
-  });
+  let feedbackText = isCorrect ? '✅ ¡Correcto!' : `❌ Incorrecto. La respuesta es: "${correctAnswer}"`;
+  if (card.meaning) feedbackText += `\n${card.meaning}`;
+  quizFeedback.textContent = feedbackText;
+
+  scoreLabel.textContent = `Puntuación: ${state.quiz.score}/${state.quiz.total}`;
+  updateProgress();
+
+  const isLast = state.currentIndex === state.cards.length - 1;
+  if (isLast) {
+    btnQuizNext.textContent = 'Ver resultados';
+  }
+  btnQuizNext.hidden = false;
 }
 
-function filterAndRender() {
-  const query = currentQuery.toLowerCase().trim();
-  const filtered = expressions.filter((item) => {
-    const matchesCategory = currentCategory === "all" || item.category === currentCategory;
-    const matchesQuery =
-      !query ||
-      item.expression.toLowerCase().includes(query) ||
-      item.translation.toLowerCase().includes(query) ||
-      item.meaning.toLowerCase().includes(query);
-    return matchesCategory && matchesQuery;
-  });
-  renderCards(filtered, query);
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function goNext() {
+  if (state.currentIndex < state.cards.length - 1) {
+    state.currentIndex++;
+    renderMode();
+  } else {
+    showCompletion();
+  }
 }
 
-function openModal(id) {
-  const item = expressions.find((e) => e.id === id);
-  if (!item) return;
-
-  modalBody.innerHTML = `
-    <div class="modal-expression">${item.expression}</div>
-    <div class="modal-translation">${item.translation}</div>
-    <span class="level-badge ${levelClass(item.level)} modal-level">${levelLabel(item.level)}</span>
-    <section>
-      <h3>Significado</h3>
-      <p>${item.meaning}</p>
-    </section>
-    <section>
-      <h3>Ejemplo</h3>
-      <p class="example-en">"${item.example}"</p>
-      <p class="example-es">${item.exampleTranslation}</p>
-    </section>
-  `;
-
-  modal.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-  modalClose.focus();
+function goPrev() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    renderMode();
+  }
 }
 
-function closeModal() {
-  modal.classList.add("hidden");
-  document.body.style.overflow = "";
+function showCompletion() {
+  appMain.hidden = true;
+  completionScreen.hidden = false;
+  if (state.mode === 'quiz') {
+    const pct = Math.round((state.quiz.score / state.quiz.total) * 100);
+    completionMsg.textContent = `Respondiste correctamente ${state.quiz.score} de ${state.quiz.total} preguntas (${pct}%).`;
+  } else {
+    completionMsg.textContent = `Repasaste las ${state.cards.length} tarjetas. ¡Buen trabajo!`;
+  }
 }
 
-searchInput.addEventListener("input", () => {
-  currentQuery = searchInput.value;
-  clearBtn.style.display = currentQuery ? "flex" : "none";
-  filterAndRender();
+function restart() {
+  state.currentIndex = 0;
+  state.isFlipped = false;
+  state.quiz = { score: 0, total: 0, answered: false };
+  scoreLabel.textContent = '';
+  completionScreen.hidden = true;
+  appMain.hidden = false;
+  renderMode();
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+function updateProgress() {
+  const total = state.cards.length;
+  const current = state.currentIndex + 1;
+  cardCounter.textContent = `${current} / ${total}`;
+  progressFill.style.width = `${(current / total) * 100}%`;
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let toastTimer;
+function showToast(msg, duration = 3000) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+
+// File input
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) parseExcel(e.target.files[0]);
+  e.target.value = '';
 });
 
-clearBtn.addEventListener("click", () => {
-  searchInput.value = "";
-  currentQuery = "";
-  clearBtn.style.display = "none";
-  searchInput.focus();
-  filterAndRender();
+// Drag & drop on drop zone
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) parseExcel(file);
 });
 
-filterBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    filterBtns.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentCategory = btn.dataset.category;
-    filterAndRender();
-  });
+// Demo data
+btnDemo.addEventListener('click', () => {
+  loadCards(DEMO_CARDS);
+  showToast('✅ Datos de ejemplo cargados');
 });
 
-modalClose.addEventListener("click", closeModal);
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) closeModal();
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeModal();
+// Mode selector
+modeBtns.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+
+// Flip card
+flashcard.addEventListener('click', flipCard);
+flashcard.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flipCard(); }
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft') goPrev();
 });
 
-// Initial render
-clearBtn.style.display = "none";
-filterAndRender();
+// Flip nav
+btnPrev.addEventListener('click', goPrev);
+btnNext.addEventListener('click', goNext);
+btnShuffle.addEventListener('click', () => {
+  state.cards = shuffle(state.cards);
+  state.currentIndex = 0;
+  state.isFlipped = false;
+  renderMode();
+  showToast('🔀 Tarjetas mezcladas');
+});
+
+// Quiz next
+btnQuizNext.addEventListener('click', goNext);
+
+// Restart
+btnRestart.addEventListener('click', restart);
+btnRestartFinal.addEventListener('click', restart);
