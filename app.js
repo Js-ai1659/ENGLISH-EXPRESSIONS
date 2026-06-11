@@ -1,4 +1,102 @@
 /* ============================================================
+   EMOJI AUTO-LOOKUP
+   Checks each word of the expression against this dictionary.
+   The first match wins. Used when no EMOJI column is provided.
+   ============================================================ */
+const EMOJI_MAP = {
+  // Animals
+  cat:'🐱', dog:'🐶', bird:'🐦', fish:'🐟', horse:'🐴', cow:'🐄', pig:'🐷', sheep:'🐑',
+  rabbit:'🐰', bear:'🐻', lion:'🦁', tiger:'🐯', elephant:'🐘', monkey:'🐒', snake:'🐍',
+  frog:'🐸', turtle:'🐢', butterfly:'🦋', bee:'🐝', ant:'🐜', spider:'🕷️', wolf:'🐺',
+  fox:'🦊', deer:'🦌', penguin:'🐧', duck:'🦆', chicken:'🐔', owl:'🦉', eagle:'🦅',
+  whale:'🐳', dolphin:'🐬', shark:'🦈', octopus:'🐙', crab:'🦀', lobster:'🦞',
+
+  // Nature
+  sun:'☀️', moon:'🌙', star:'⭐', rain:'🌧️', snow:'❄️', cloud:'☁️', wind:'💨',
+  fire:'🔥', water:'💧', earth:'🌍', mountain:'⛰️', tree:'🌳', flower:'🌸', leaf:'🍃',
+  grass:'🌿', rainbow:'🌈', storm:'⛈️', lightning:'⚡', ice:'🧊', desert:'🏜️', forest:'🌲',
+
+  // Food & Drink
+  apple:'🍎', banana:'🍌', orange:'🍊', grape:'🍇', strawberry:'🍓', pizza:'🍕',
+  burger:'🍔', bread:'🍞', rice:'🍚', egg:'🥚', cheese:'🧀', cake:'🎂', cookie:'🍪',
+  coffee:'☕', tea:'🍵', beer:'🍺', wine:'🍷', milk:'🥛', juice:'🧃', water:'💧',
+  soup:'🍜', salad:'🥗', meat:'🥩', chicken:'🍗', fish:'🐟', fruit:'🍎', vegetable:'🥦',
+
+  // Body & Health
+  heart:'❤️', brain:'🧠', eye:'👁️', hand:'✋', foot:'🦶', tooth:'🦷', bone:'🦴',
+  muscle:'💪', blood:'🩸', medicine:'💊', hospital:'🏥', doctor:'👨‍⚕️', sick:'🤒',
+  sleep:'😴', run:'🏃', walk:'🚶', exercise:'🏋️', yoga:'🧘',
+
+  // Emotions
+  happy:'😊', sad:'😢', angry:'😠', fear:'😨', love:'❤️', laugh:'😂', cry:'😭',
+  surprise:'😲', worry:'😰', calm:'😌', excited:'🤩', tired:'😴', confused:'😕',
+  proud:'😤', shame:'😳', jealous:'😒', bored:'🥱', nervous:'😬',
+
+  // People & Family
+  baby:'👶', child:'👦', boy:'👦', girl:'👧', man:'👨', woman:'👩', father:'👨',
+  mother:'👩', family:'👨‍👩‍👧‍👦', friend:'🤝', teacher:'👩‍🏫', student:'🎓', doctor:'👨‍⚕️',
+  police:'👮', soldier:'💂', king:'🤴', queen:'👸',
+
+  // Objects & Things
+  book:'📚', pencil:'✏️', pen:'🖊️', paper:'📄', phone:'📱', computer:'💻',
+  camera:'📷', clock:'⏰', key:'🔑', lock:'🔒', money:'💰', bag:'👜', hat:'🎩',
+  glasses:'👓', umbrella:'☂️', chair:'🪑', table:'🪑', bed:'🛏️', door:'🚪',
+  window:'🪟', lamp:'💡', knife:'🔪', fork:'🍴', cup:'☕', bottle:'🍶', box:'📦',
+  gift:'🎁', balloon:'🎈', candle:'🕯️', mirror:'🪞', rope:'🧵', needle:'🪡',
+
+  // Places & Buildings
+  house:'🏠', home:'🏠', school:'🏫', church:'⛪', castle:'🏰', hospital:'🏥',
+  hotel:'🏨', shop:'🏪', market:'🏪', bank:'🏦', library:'📚', museum:'🏛️',
+  park:'🌳', beach:'🏖️', city:'🌆', village:'🏘️', farm:'🌾', garden:'🌷',
+
+  // Transport
+  car:'🚗', bus:'🚌', train:'🚂', plane:'✈️', boat:'⛵', ship:'🚢', bicycle:'🚲',
+  motorcycle:'🏍️', truck:'🚚', taxi:'🚕', ambulance:'🚑', rocket:'🚀', helicopter:'🚁',
+
+  // Sports & Activities
+  football:'⚽', soccer:'⚽', basketball:'🏀', tennis:'🎾', baseball:'⚾', golf:'⛳',
+  swimming:'🏊', running:'🏃', cycling:'🚴', boxing:'🥊', chess:'♟️', game:'🎮',
+  music:'🎵', dance:'💃', art:'🎨', paint:'🎨', draw:'✏️', sing:'🎤', play:'🎮',
+  read:'📖', write:'✍️', cook:'👨‍🍳', travel:'✈️', sleep:'😴', dream:'💭',
+
+  // Time & Calendar
+  morning:'🌅', night:'🌙', day:'☀️', week:'📅', month:'📆', year:'🗓️',
+  today:'📅', tomorrow:'🌅', yesterday:'⏪', time:'⏰', hour:'⏰', minute:'⏱️',
+
+  // Numbers & Shapes
+  circle:'⭕', square:'🟥', triangle:'🔺', star:'⭐', diamond:'💎', heart:'❤️',
+
+  // Weather
+  hot:'🌡️', cold:'🥶', warm:'🌡️', sunny:'☀️', windy:'💨', foggy:'🌫️', humid:'💧',
+
+  // Colors
+  red:'🔴', blue:'🔵', green:'🟢', yellow:'🟡', black:'⚫', white:'⚪', purple:'🟣',
+  orange:'🟠', pink:'🩷', brown:'🟫', grey:'🔘', gray:'🔘',
+
+  // Work & Money
+  work:'💼', job:'💼', office:'🏢', meeting:'🤝', money:'💰', pay:'💳', tax:'🧾',
+  business:'💼', boss:'👔', employee:'👷', company:'🏢', market:'📈', price:'💲',
+
+  // Technology
+  internet:'🌐', email:'📧', wifi:'📶', battery:'🔋', power:'⚡', robot:'🤖',
+  code:'💻', data:'💾', server:'🖥️', software:'💿', app:'📱',
+
+  // Miscellaneous
+  idea:'💡', question:'❓', answer:'✅', problem:'⚠️', solution:'🔧', change:'🔄',
+  new:'🆕', old:'🕰️', big:'🐘', small:'🐜', fast:'⚡', slow:'🐢', easy:'😊',
+  hard:'💪', good:'👍', bad:'👎', right:'✅', wrong:'❌', yes:'✅', no:'❌',
+  up:'⬆️', down:'⬇️', left:'⬅️', right:'➡️', open:'🔓', close:'🔒'
+};
+
+function autoEmoji(expression) {
+  const words = expression.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/);
+  for (const word of words) {
+    if (EMOJI_MAP[word]) return EMOJI_MAP[word];
+  }
+  return '';
+}
+
+/* ============================================================
    STATE
    ============================================================ */
 const state = {
@@ -178,8 +276,9 @@ function renderFlipCard() {
   state.isFlipped = false;
   cardInner.classList.remove('flipped');
 
-  cardEmoji.textContent      = card.emoji || '';
-  cardEmoji.hidden           = !card.emoji;
+  const emoji = card.emoji || autoEmoji(card.expression);
+  cardEmoji.textContent = emoji;
+  cardEmoji.hidden      = !emoji;
   cardExpression.textContent = card.expression;
   valMeaning.textContent     = card.meaning     || '—';
   valExplanation.textContent = card.explanation || '—';
