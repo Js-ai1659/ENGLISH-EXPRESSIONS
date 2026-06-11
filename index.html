@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Expressions</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🇬🇧 English Expressions</h1>
+      <p class="subtitle">Consulta frases y expresiones comunes en inglés</p>
+    </header>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        id="search"
+        placeholder="Busca una expresión, ej: break the ice..."
+        autocomplete="off"
+      />
+      <button id="clear-btn" title="Limpiar">✕</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-category="all">Todas</button>
+      <button class="filter-btn" data-category="greetings">Saludos</button>
+      <button class="filter-btn" data-category="business">Negocios</button>
+      <button class="filter-btn" data-category="emotions">Emociones</button>
+      <button class="filter-btn" data-category="idioms">Modismos</button>
+      <button class="filter-btn" data-category="social">Social</button>
+      <button class="filter-btn" data-category="time">Tiempo</button>
+    </div>
+
+    <div id="results-count" class="results-count"></div>
+
+    <div id="cards-container" class="cards-container"></div>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="modal-close" id="modal-close">✕</button>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
