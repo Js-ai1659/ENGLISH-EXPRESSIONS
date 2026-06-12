@@ -510,48 +510,28 @@ dropZone.addEventListener('drop', e => {
   if (file) parseExcel(file);
 });
 
-// Paste input — supports two formats:
-// 1. TSV table: expression\tsynonym\tmeaning\tsentence  (one card per line)
-// 2. Key-value blocks: "Word / Expression\tvalue" separated by blank lines
+// Paste input — one card per line, columns separated by | or tab
+// Columns: expression | synonym | meaning | example sentence
+// Lines starting with common header words are skipped automatically
 function parsePasteText(text) {
-  const lines = text.trim().split('\n').map(l => l.trimEnd()).filter(l => l.length > 0);
+  const HEADER_WORDS = ['word', 'expression', 'expresion', 'synonym', 'meaning', 'sentence'];
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0);
   if (!lines.length) return [];
 
-  // Detect TSV table: first line has ≥2 tabs → columnar format
-  const firstTabs = (lines[0].match(/\t/g) || []).length;
-  if (firstTabs >= 2) {
-    // Columnar TSV: expression | synonym | meaning | sentence
-    return lines.map(line => {
-      const [expression = '', synonyms = '', meaning = '', example = ''] = line.split('\t').map(s => s.trim());
-      return { expression, synonyms, meaning, example, emoji: '', explanation: '', ipa: '', link: '' };
-    }).filter(c => c.expression);
-  }
-
-  // Key-value format: "Label\tValue" blocks separated by blank lines
-  const PASTE_ALIASES = {
-    expression: ['word', 'expression', 'expresion', 'phrase', 'frase'],
-    synonyms:   ['synonym', 'sinonimo'],
-    meaning:    ['meaning', 'significado', 'definition', 'definicion'],
-    example:    ['sentence', 'example', 'ejemplo', 'context', 'uso'],
-  };
-  function matchPasteField(label) {
-    const h = removeAccents(label);
-    for (const [field, aliases] of Object.entries(PASTE_ALIASES)) {
-      if (aliases.some(a => h.includes(a))) return field;
-    }
-    return null;
-  }
-  const blocks = text.trim().split(/\n{2,}/);
   const cards = [];
-  for (const block of blocks) {
-    const card = { expression: '', meaning: '', synonyms: '', emoji: '', explanation: '', example: '', ipa: '', link: '' };
-    for (const line of block.split('\n')) {
-      const idx = line.indexOf('\t');
-      if (idx === -1) continue;
-      const field = matchPasteField(line.slice(0, idx));
-      if (field) card[field] = line.slice(idx + 1).trim();
-    }
-    if (card.expression) cards.push(card);
+  for (const line of lines) {
+    // Detect separator: prefer | then tab
+    const sep = line.includes('|') ? '|' : '\t';
+    const parts = line.split(sep).map(s => s.trim());
+    if (parts.length < 2) continue;
+
+    const [expression = '', synonyms = '', meaning = '', example = ''] = parts;
+
+    // Skip header rows
+    const firstWord = removeAccents(expression).split(/\s+/)[0];
+    if (HEADER_WORDS.some(h => firstWord === h)) continue;
+
+    if (expression) cards.push({ expression, synonyms, meaning, example, emoji: '', explanation: '', ipa: '', link: '' });
   }
   return cards;
 }
