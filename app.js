@@ -165,7 +165,7 @@ const ALIASES = {
   expression:  ['expression', 'expresion', 'word', 'palabra', 'phrase', 'frase', 'term', 'termino'],
   emoji:       ['emoji', 'emoticono', 'icon', 'icono', 'imagen', 'image'],
   meaning:     ['meaning', 'significado', 'definition', 'definicion'],
-  explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle'],
+  explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle', 'information', 'informacion', 'info'],
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
@@ -193,54 +193,56 @@ function parseExcel(file) {
     try {
       const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
-      if (!rows.length) { showToast('El archivo está vacío.'); return; }
+      // Use raw arrays so column indices align perfectly with worksheet cells
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (!raw.length) { showToast('El archivo está vacío.'); return; }
 
-      const colMap = {};
-      Object.keys(rows[0]).forEach(h => {
+      const headers = raw[0].map(h => String(h));
+
+      // Map field names → column index
+      const colIdx = {};
+      headers.forEach((h, i) => {
         const field = matchField(h);
-        if (field && !colMap[field]) colMap[field] = h;
+        if (field && !(field in colIdx)) colIdx[field] = i;
       });
 
-      if (!colMap.expression) {
+      if (colIdx.expression === undefined) {
         showToast('No se encontró columna "Expression". Verifica los encabezados.');
         return;
       }
 
-      // Build a map of row-index → hyperlink URL for the link column
-      const linkHyperlinks = {};
-      if (colMap.link) {
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        // Find the column letter for the link header
-        let linkColIdx = -1;
-        for (let c = range.s.c; c <= range.e.c; c++) {
-          const cellAddr = XLSX.utils.encode_cell({ r: range.s.r, c });
-          const cell = ws[cellAddr];
-          if (cell && matchField(String(cell.v)) === 'link') { linkColIdx = c; break; }
-        }
-        if (linkColIdx >= 0) {
-          for (let r = range.s.r + 1; r <= range.e.r; r++) {
-            const cellAddr = XLSX.utils.encode_cell({ r, c: linkColIdx });
-            const cell = ws[cellAddr];
-            if (cell && cell.l && cell.l.Target) {
-              linkHyperlinks[r - range.s.r - 1] = cell.l.Target;
-            }
-          }
-        }
-      }
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+      const startRow = range.s.r; // header row (0-based in worksheet)
 
-      const cards = rows
-        .map((r, i) => ({
-          expression:  String(r[colMap.expression]  || '').trim(),
-          emoji:       String(r[colMap.emoji]       || '').trim(),
-          meaning:     String(r[colMap.meaning]     || '').trim(),
-          explanation: String(r[colMap.explanation] || '').trim(),
-          synonyms:    String(r[colMap.synonyms]    || '').trim(),
-          example:     String(r[colMap.example]     || '').trim(),
-          ipa:         String(r[colMap.ipa]         || '').trim(),
-          link:        linkHyperlinks[i] || String(r[colMap.link] || '').trim()
-        }))
+      const cards = raw.slice(1)
+        .map((row, i) => {
+          const wsRow = startRow + 1 + i; // absolute worksheet row
+
+          // For link: prefer the hyperlink URL (cell.l.Target) over cell text
+          let link = '';
+          if (colIdx.link !== undefined) {
+            const wsCol = range.s.c + colIdx.link;
+            const addr  = XLSX.utils.encode_cell({ r: wsRow, c: wsCol });
+            const cell  = ws[addr];
+            const raw   = (cell && cell.l && cell.l.Target)
+              ? cell.l.Target
+              : String(row[colIdx.link] || '').trim();
+            // XLSX.js encodes URLs with HTML entities (&amp; → &)
+            link = raw.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+          }
+
+          return {
+            expression:  String(row[colIdx.expression]  || '').trim(),
+            emoji:       String(row[colIdx.emoji]        || '').trim(),
+            meaning:     String(row[colIdx.meaning]      || '').trim(),
+            explanation: String(row[colIdx.explanation]  || '').trim(),
+            synonyms:    String(row[colIdx.synonyms]     || '').trim(),
+            example:     String(row[colIdx.example]      || '').trim(),
+            ipa:         String(row[colIdx.ipa]          || '').trim(),
+            link
+          };
+        })
         .filter(c => c.expression);
 
       if (!cards.length) { showToast('No se encontraron filas con datos.'); return; }
