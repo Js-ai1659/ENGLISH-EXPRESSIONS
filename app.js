@@ -128,6 +128,8 @@ const cardInner      = $('card-inner');
 const flashcard      = $('flashcard');
 const cardEmoji      = $('card-emoji');
 const cardExpression = $('card-expression');
+const cardIpaFront   = $('card-ipa-front');
+const backLinkBtn    = $('back-link-btn');
 const valMeaning     = $('val-meaning');
 const valExplanation = $('val-explanation');
 const valSynonyms    = $('val-synonyms');
@@ -166,7 +168,8 @@ const ALIASES = {
   explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle'],
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
-  ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica']
+  ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
+  link:        ['link', 'enlace', 'url', 'imagen', 'google', 'image_link', 'imagelink']
 };
 
 function removeAccents(s) {
@@ -213,7 +216,8 @@ function parseExcel(file) {
           explanation: String(r[colMap.explanation] || '').trim(),
           synonyms:    String(r[colMap.synonyms]    || '').trim(),
           example:     String(r[colMap.example]     || '').trim(),
-          ipa:         String(r[colMap.ipa]         || '').trim()
+          ipa:         String(r[colMap.ipa]         || '').trim(),
+          link:        String(r[colMap.link]        || '').trim()
         }))
         .filter(c => c.expression);
 
@@ -280,6 +284,16 @@ function renderFlipCard() {
   cardEmoji.textContent = emoji;
   cardEmoji.hidden      = !emoji;
   cardExpression.textContent = card.expression;
+  cardIpaFront.textContent   = card.ipa || '';
+  cardIpaFront.hidden        = !card.ipa;
+
+  if (card.link) {
+    backLinkBtn.href   = card.link;
+    backLinkBtn.hidden = false;
+  } else {
+    backLinkBtn.hidden = true;
+  }
+
   valMeaning.textContent     = card.meaning     || '—';
   valExplanation.textContent = card.explanation || '—';
   valSynonyms.textContent    = card.synonyms    || '—';

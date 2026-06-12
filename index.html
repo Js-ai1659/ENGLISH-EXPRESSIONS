@@ -30,7 +30,7 @@
       <p>Arrastra y suelta aquí, o usa el botón <strong>Importar Excel</strong></p>
       <p class="hint">
         Columnas esperadas (en cualquier orden):<br />
-        <code>WORD-EXPRESSION · EMOJI · MEANING · EXPLANATION · SYNONYMS · EXAMPLE_SENTENCE · IPA</code>
+        <code>WORD-EXPRESSION · EMOJI · MEANING · EXPLANATION · SYNONYMS · EXAMPLE_SENTENCE · IPA · LINK</code>
       </p>
     </div>
     <button class="btn btn-demo" id="btn-demo">Usar datos de ejemplo</button>
@@ -67,12 +67,16 @@
               <span class="card-face-label">Expresión</span>
               <p class="card-emoji" id="card-emoji"></p>
               <p class="card-expression" id="card-expression"></p>
+              <p class="card-ipa-front" id="card-ipa-front"></p>
               <span class="flip-hint">Haz clic para ver la respuesta ↩</span>
             </div>
 
             <!-- BACK -->
             <div class="card-back">
-              <span class="card-face-label">Respuesta</span>
+              <div class="back-top-row">
+                <span class="card-face-label">Respuesta</span>
+                <a class="back-link-btn" id="back-link-btn" target="_blank" rel="noopener" title="Buscar en Google Images" hidden>🔍 Google Images</a>
+              </div>
               <div class="back-grid" id="back-grid">
                 <div class="back-item" id="back-meaning">
                   <span class="back-label">Meaning</span>
