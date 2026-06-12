@@ -165,7 +165,7 @@ const ALIASES = {
   expression:  ['expression', 'expresion', 'word', 'palabra', 'phrase', 'frase', 'term', 'termino'],
   emoji:       ['emoji', 'emoticono', 'icon', 'icono', 'imagen', 'image'],
   meaning:     ['meaning', 'significado', 'definition', 'definicion'],
-  explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle'],
+  explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle', 'information', 'informacion', 'info'],
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
@@ -225,9 +225,11 @@ function parseExcel(file) {
             const wsCol = range.s.c + colIdx.link;
             const addr  = XLSX.utils.encode_cell({ r: wsRow, c: wsCol });
             const cell  = ws[addr];
-            link = (cell && cell.l && cell.l.Target)
+            const raw   = (cell && cell.l && cell.l.Target)
               ? cell.l.Target
               : String(row[colIdx.link] || '').trim();
+            // XLSX.js encodes URLs with HTML entities (&amp; → &)
+            link = raw.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
           }
 
           return {
