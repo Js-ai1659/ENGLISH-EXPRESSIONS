@@ -510,25 +510,43 @@ dropZone.addEventListener('drop', e => {
   if (file) parseExcel(file);
 });
 
-// Paste input — one card per line, columns separated by | or tab
-// Columns: expression | synonym | meaning | example sentence
-// Lines starting with common header words are skipped automatically
+// Paste input — one card per line
+// Supports: CSV (comma), pipe |, or tab separators
+// Handles quoted fields (CSV standard: "value with, comma")
+// Columns: expression, synonym, meaning, example sentence
+// Header rows are skipped automatically
+function parseCsvLine(line) {
+  const fields = [];
+  let cur = '', inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuote && line[i + 1] === '"') { cur += '"'; i++; }
+      else inQuote = !inQuote;
+    } else if (!inQuote && (ch === ',' || ch === '\t' || ch === '|')) {
+      fields.push(cur.trim()); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  fields.push(cur.trim());
+  return fields;
+}
+
 function parsePasteText(text) {
-  const HEADER_WORDS = ['word', 'expression', 'expresion', 'synonym', 'meaning', 'sentence'];
+  const HEADER_WORDS = ['term', 'word', 'expression', 'expresion', 'synonym', 'meaning', 'sentence'];
   const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0);
   if (!lines.length) return [];
 
   const cards = [];
   for (const line of lines) {
-    // Detect separator: prefer | then tab
-    const sep = line.includes('|') ? '|' : '\t';
-    const parts = line.split(sep).map(s => s.trim());
+    const parts = parseCsvLine(line);
     if (parts.length < 2) continue;
 
     const [expression = '', synonyms = '', meaning = '', example = ''] = parts;
 
     // Skip header rows
-    const firstWord = removeAccents(expression).split(/\s+/)[0];
+    const firstWord = removeAccents(expression).split(/[\s/]+/)[0];
     if (HEADER_WORDS.some(h => firstWord === h)) continue;
 
     if (expression) cards.push({ expression, synonyms, meaning, example, emoji: '', explanation: '', ipa: '', link: '' });
