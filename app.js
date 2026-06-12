@@ -128,6 +128,8 @@ const quizModeEl   = $('quiz-mode');
 
 const cardInner      = $('card-inner');
 const btnSearch      = $('btn-search');
+const btnSaved       = $('btn-saved');
+const btnStar        = $('btn-star');
 const searchBar      = $('search-bar');
 const searchInput    = $('search-input');
 const searchResults  = $('search-results');
@@ -275,6 +277,7 @@ function loadCards(cards) {
   completionScreen.hidden = true;
   appMain.hidden = false;
   btnSearch.hidden = false;
+  updateSavedBtn();
 
   renderMode();
 }
@@ -340,6 +343,7 @@ function renderFlipCard() {
   btnPrev.disabled = state.currentIndex === 0;
   btnNext.disabled = state.currentIndex === state.cards.length - 1;
   updateProgress();
+  updateStarBtn();
 }
 
 function flipCard() {
@@ -606,6 +610,70 @@ btnRestartFinal.addEventListener('click', restart);
 /* ============================================================
    SEARCH
    ============================================================ */
+/* ============================================================
+   SAVED (PENDING) CARDS  — persisted in localStorage
+   ============================================================ */
+const STORAGE_KEY = 'flashcards_saved';
+
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveCard(card) {
+  const saved = getSaved();
+  if (!saved.find(c => c.expression === card.expression)) {
+    saved.push(card);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  }
+  updateSavedBtn();
+}
+
+function unsaveCard(expression) {
+  const saved = getSaved().filter(c => c.expression !== expression);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  updateSavedBtn();
+}
+
+function isCardSaved(expression) {
+  return getSaved().some(c => c.expression === expression);
+}
+
+function updateSavedBtn() {
+  const n = getSaved().length;
+  btnSaved.hidden = n === 0;
+  btnSaved.textContent = `★ Pendientes (${n})`;
+}
+
+function updateStarBtn() {
+  const card = state.cards[state.currentIndex];
+  if (!card) return;
+  btnStar.textContent = isCardSaved(card.expression) ? '★' : '☆';
+  btnStar.title = isCardSaved(card.expression) ? 'Quitar de pendientes' : 'Guardar como pendiente';
+}
+
+btnStar.addEventListener('click', e => {
+  e.stopPropagation();
+  const card = state.cards[state.currentIndex];
+  if (!card) return;
+  if (isCardSaved(card.expression)) {
+    unsaveCard(card.expression);
+  } else {
+    saveCard(card);
+  }
+  updateStarBtn();
+});
+
+btnSaved.addEventListener('click', () => {
+  const saved = getSaved();
+  if (!saved.length) return;
+  loadCards(saved);
+  showToast(`★ ${saved.length} tarjetas pendientes`);
+});
+
+// Init saved button on page load
+updateSavedBtn();
+
 function highlight(text, query) {
   if (!query) return text;
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

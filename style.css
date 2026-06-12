@@ -76,6 +76,27 @@ body {
 .btn-upload { background: var(--accent); color: #fff; }
 .btn-upload:hover { background: var(--accent-hover); }
 
+.btn-saved {
+  background: var(--surface2);
+  color: #f59e0b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid #f59e0b44;
+}
+.btn-saved:hover { background: #f59e0b22; }
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #f59e0b;
+  padding: 0;
+  transition: transform 0.15s;
+}
+.star-btn:hover { transform: scale(1.2); }
+
 .btn-search {
   background: var(--surface2);
   color: var(--text);
