@@ -15,6 +15,7 @@
       <h1>English Flashcards</h1>
     </div>
     <div class="header-right">
+      <button class="btn btn-saved" id="btn-saved" title="Ver tarjetas pendientes" hidden>★ Pendientes</button>
       <button class="btn btn-search" id="btn-search" title="Buscar tarjeta" hidden>🔍</button>
       <label class="btn btn-upload" title="Importar archivo Excel (.xlsx / .xls)">
         📂 Importar Excel
@@ -79,7 +80,10 @@
             <div class="card-front">
               <div class="front-top-row">
                 <span class="card-face-label">Expresión</span>
-                <a class="back-link-btn" id="front-link-btn" target="_blank" rel="noopener" title="Ver imagen" hidden>🔍 Google Images</a>
+                <div style="display:flex;gap:0.4rem;align-items:center">
+                  <button class="star-btn" id="btn-star" title="Guardar como pendiente">☆</button>
+                  <a class="back-link-btn" id="front-link-btn" target="_blank" rel="noopener" title="Ver imagen" hidden>🔍 Google Images</a>
+                </div>
               </div>
               <p class="card-emoji" id="card-emoji"></p>
               <p class="card-expression" id="card-expression"></p>
