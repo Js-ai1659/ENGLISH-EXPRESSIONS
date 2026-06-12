@@ -125,6 +125,10 @@ const flipModeEl   = $('flip-mode');
 const quizModeEl   = $('quiz-mode');
 
 const cardInner      = $('card-inner');
+const btnSearch      = $('btn-search');
+const searchBar      = $('search-bar');
+const searchInput    = $('search-input');
+const searchResults  = $('search-results');
 const flashcard      = $('flashcard');
 const cardEmoji      = $('card-emoji');
 const cardExpression = $('card-expression');
@@ -268,6 +272,7 @@ function loadCards(cards) {
   welcomeSection.hidden = true;
   completionScreen.hidden = true;
   appMain.hidden = false;
+  btnSearch.hidden = false;
 
   renderMode();
 }
@@ -537,3 +542,69 @@ btnQuizNext.addEventListener('click', goNext);
 // Restart
 btnRestart.addEventListener('click', restart);
 btnRestartFinal.addEventListener('click', restart);
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+function highlight(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+}
+
+btnSearch.addEventListener('click', () => {
+  const open = searchBar.hidden;
+  searchBar.hidden = !open;
+  btnSearch.classList.toggle('active', open);
+  if (open) {
+    searchInput.value = '';
+    searchResults.hidden = true;
+    searchInput.focus();
+  }
+});
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) { searchResults.hidden = true; return; }
+
+  const matches = state.cards
+    .map((card, idx) => ({ card, idx }))
+    .filter(({ card }) =>
+      card.expression.toLowerCase().includes(q) ||
+      card.synonyms.toLowerCase().includes(q)
+    )
+    .slice(0, 10);
+
+  if (!matches.length) {
+    searchResults.innerHTML = '<li style="color:var(--text-muted)">Sin resultados</li>';
+    searchResults.hidden = false;
+    return;
+  }
+
+  searchResults.innerHTML = matches.map(({ card, idx }) => {
+    const expr = highlight(card.expression, q);
+    const syn  = card.synonyms ? ` <span style="color:var(--text-muted);font-size:0.8rem">— ${highlight(card.synonyms, q)}</span>` : '';
+    return `<li data-idx="${idx}">${expr}${syn}</li>`;
+  }).join('');
+  searchResults.hidden = false;
+});
+
+searchResults.addEventListener('click', e => {
+  const li = e.target.closest('li[data-idx]');
+  if (!li) return;
+  state.currentIndex = parseInt(li.dataset.idx, 10);
+  state.isFlipped = false;
+  renderMode();
+  searchBar.hidden = true;
+  btnSearch.classList.remove('active');
+  searchInput.value = '';
+  searchResults.hidden = true;
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !searchBar.hidden) {
+    searchBar.hidden = true;
+    btnSearch.classList.remove('active');
+    searchResults.hidden = true;
+  }
+});
