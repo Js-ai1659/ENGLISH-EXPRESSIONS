@@ -52,7 +52,8 @@ const DEMO_CARDS = [
     explanation: "Used when someone does something to make people feel more comfortable in a social situation.",
     synonyms:    "Warm up, ease the tension, get the ball rolling",
     example:     "He told a joke to break the ice at the beginning of the meeting.",
-    ipa:         "/breɪk ðə aɪs/"
+    ipa:         "/breɪk ðə aɪs/",
+    link:        "https://www.google.com/search?q=break+the+ice+meaning&tbm=isch"
   },
   {
     expression:  "Under the weather",
