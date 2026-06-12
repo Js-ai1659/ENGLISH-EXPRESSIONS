@@ -118,9 +118,9 @@ const completionScreen = $('completion-screen');
 
 const fileInput    = $('file-input');
 const dropZone     = $('drop-zone');
-const btnDemo      = $('btn-demo');
 const pasteInput   = $('paste-input');
 const btnPaste     = $('btn-paste');
+const btnClear     = $('btn-clear');
 
 const modeBtns     = document.querySelectorAll('.mode-btn');
 const flipModeEl   = $('flip-mode');
@@ -561,10 +561,17 @@ btnPaste.addEventListener('click', () => {
   showToast(`✅ ${cards.length} tarjetas cargadas`);
 });
 
-// Demo data
-btnDemo.addEventListener('click', () => {
-  loadCards(DEMO_CARDS);
-  showToast('✅ Datos de ejemplo cargados');
+// Clear cards → back to welcome screen
+btnClear.addEventListener('click', () => {
+  state.cards = [];
+  state.currentIndex = 0;
+  state.isFlipped = false;
+  appMain.hidden = true;
+  completionScreen.hidden = true;
+  welcomeSection.hidden = false;
+  btnSearch.hidden = true;
+  searchBar.hidden = true;
+  pasteInput.value = '';
 });
 
 // Mode selector
