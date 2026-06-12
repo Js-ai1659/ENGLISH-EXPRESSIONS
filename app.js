@@ -129,7 +129,7 @@ const flashcard      = $('flashcard');
 const cardEmoji      = $('card-emoji');
 const cardExpression = $('card-expression');
 const cardIpaFront   = $('card-ipa-front');
-const backLinkBtn    = $('back-link-btn');
+const frontLinkBtn   = $('front-link-btn');
 const valMeaning     = $('val-meaning');
 const valExplanation = $('val-explanation');
 const valSynonyms    = $('val-synonyms');
@@ -288,10 +288,10 @@ function renderFlipCard() {
   cardIpaFront.hidden        = !card.ipa;
 
   if (card.link) {
-    backLinkBtn.href   = card.link;
-    backLinkBtn.hidden = false;
+    frontLinkBtn.href   = card.link;
+    frontLinkBtn.hidden = false;
   } else {
-    backLinkBtn.hidden = true;
+    frontLinkBtn.hidden = true;
   }
 
   valMeaning.textContent     = card.meaning     || '—';
