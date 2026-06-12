@@ -208,8 +208,30 @@ function parseExcel(file) {
         return;
       }
 
+      // Build a map of row-index → hyperlink URL for the link column
+      const linkHyperlinks = {};
+      if (colMap.link) {
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        // Find the column letter for the link header
+        let linkColIdx = -1;
+        for (let c = range.s.c; c <= range.e.c; c++) {
+          const cellAddr = XLSX.utils.encode_cell({ r: range.s.r, c });
+          const cell = ws[cellAddr];
+          if (cell && matchField(String(cell.v)) === 'link') { linkColIdx = c; break; }
+        }
+        if (linkColIdx >= 0) {
+          for (let r = range.s.r + 1; r <= range.e.r; r++) {
+            const cellAddr = XLSX.utils.encode_cell({ r, c: linkColIdx });
+            const cell = ws[cellAddr];
+            if (cell && cell.l && cell.l.Target) {
+              linkHyperlinks[r - range.s.r - 1] = cell.l.Target;
+            }
+          }
+        }
+      }
+
       const cards = rows
-        .map(r => ({
+        .map((r, i) => ({
           expression:  String(r[colMap.expression]  || '').trim(),
           emoji:       String(r[colMap.emoji]       || '').trim(),
           meaning:     String(r[colMap.meaning]     || '').trim(),
@@ -217,7 +239,7 @@ function parseExcel(file) {
           synonyms:    String(r[colMap.synonyms]    || '').trim(),
           example:     String(r[colMap.example]     || '').trim(),
           ipa:         String(r[colMap.ipa]         || '').trim(),
-          link:        String(r[colMap.link]        || '').trim()
+          link:        linkHyperlinks[i] || String(r[colMap.link] || '').trim()
         }))
         .filter(c => c.expression);
 
