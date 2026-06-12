@@ -15,6 +15,7 @@
       <h1>English Flashcards</h1>
     </div>
     <div class="header-right">
+      <button class="btn btn-search" id="btn-search" title="Buscar tarjeta" hidden>🔍</button>
       <label class="btn btn-upload" title="Importar archivo Excel (.xlsx / .xls)">
         📂 Importar Excel
         <input type="file" id="file-input" accept=".xlsx,.xls" hidden />
@@ -38,6 +39,12 @@
 
   <!-- MAIN APP (visible after loading cards) -->
   <main class="app-main" id="app-main" hidden>
+
+    <!-- SEARCH -->
+    <div class="search-bar" id="search-bar" hidden>
+      <input type="text" id="search-input" placeholder="Buscar expresión o sinónimo..." autocomplete="off" />
+      <ul class="search-results" id="search-results" hidden></ul>
+    </div>
 
     <!-- MODE SELECTOR -->
     <div class="mode-selector">
