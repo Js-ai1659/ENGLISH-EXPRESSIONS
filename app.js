@@ -516,6 +516,7 @@ function parsePasteText(text) {
     expression: ['word', 'expression', 'expresion', 'phrase', 'frase'],
     synonyms:   ['synonym', 'sinonimo'],
     meaning:    ['meaning', 'significado', 'definition', 'definicion'],
+    example:    ['sentence', 'example', 'ejemplo', 'context', 'uso'],
   };
 
   function matchPasteField(label) {
