@@ -534,7 +534,7 @@ function parseCsvLine(line) {
 }
 
 function parsePasteText(text) {
-  const HEADER_WORDS = ['term', 'word', 'expression', 'expresion', 'synonym', 'meaning', 'sentence'];
+  const HEADER_WORDS = ['term', 'word', 'expression', 'expresion', 'synonym', 'meaning', 'sentence', 'more'];
   const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0);
   if (!lines.length) return [];
 
@@ -543,13 +543,13 @@ function parsePasteText(text) {
     const parts = parseCsvLine(line);
     if (parts.length < 2) continue;
 
-    const [expression = '', synonyms = '', meaning = '', example = ''] = parts;
+    const [expression = '', synonyms = '', meaning = '', explanation = '', example = ''] = parts;
 
     // Skip header rows
     const firstWord = removeAccents(expression).split(/[\s/]+/)[0];
     if (HEADER_WORDS.some(h => firstWord === h)) continue;
 
-    if (expression) cards.push({ expression, synonyms, meaning, example, emoji: '', explanation: '', ipa: '', link: '' });
+    if (expression) cards.push({ expression, synonyms, meaning, explanation, example, emoji: '', ipa: '', link: '' });
   }
   return cards;
 }
