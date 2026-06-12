@@ -119,6 +119,8 @@ const completionScreen = $('completion-screen');
 const fileInput    = $('file-input');
 const dropZone     = $('drop-zone');
 const btnDemo      = $('btn-demo');
+const pasteInput   = $('paste-input');
+const btnPaste     = $('btn-paste');
 
 const modeBtns     = document.querySelectorAll('.mode-btn');
 const flipModeEl   = $('flip-mode');
@@ -506,6 +508,48 @@ dropZone.addEventListener('drop', e => {
   dropZone.classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
   if (file) parseExcel(file);
+});
+
+// Paste input
+function parsePasteText(text) {
+  const PASTE_ALIASES = {
+    expression: ['word', 'expression', 'expresion', 'phrase', 'frase'],
+    synonyms:   ['synonym', 'sinonimo'],
+    meaning:    ['meaning', 'significado', 'definition', 'definicion'],
+  };
+
+  function matchPasteField(label) {
+    const h = removeAccents(label);
+    for (const [field, aliases] of Object.entries(PASTE_ALIASES)) {
+      if (aliases.some(a => h.includes(a))) return field;
+    }
+    return null;
+  }
+
+  const blocks = text.trim().split(/\n{2,}/);
+  const cards = [];
+
+  for (const block of blocks) {
+    const card = { expression: '', meaning: '', synonyms: '', emoji: '', explanation: '', example: '', ipa: '', link: '' };
+    for (const line of block.split('\n')) {
+      const sep = line.indexOf('\t') !== -1 ? '\t' : '    ';
+      const idx = line.indexOf(sep);
+      if (idx === -1) continue;
+      const label = line.slice(0, idx).trim();
+      const value = line.slice(idx).trim();
+      const field = matchPasteField(label);
+      if (field) card[field] = value;
+    }
+    if (card.expression) cards.push(card);
+  }
+  return cards;
+}
+
+btnPaste.addEventListener('click', () => {
+  const cards = parsePasteText(pasteInput.value);
+  if (!cards.length) { showToast('No se encontraron tarjetas. Revisa el formato.'); return; }
+  loadCards(cards);
+  showToast(`✅ ${cards.length} tarjetas cargadas`);
 });
 
 // Demo data
