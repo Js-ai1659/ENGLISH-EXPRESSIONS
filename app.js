@@ -510,15 +510,30 @@ dropZone.addEventListener('drop', e => {
   if (file) parseExcel(file);
 });
 
-// Paste input
+// Paste input — supports two formats:
+// 1. TSV table: expression\tsynonym\tmeaning\tsentence  (one card per line)
+// 2. Key-value blocks: "Word / Expression\tvalue" separated by blank lines
 function parsePasteText(text) {
+  const lines = text.trim().split('\n').map(l => l.trimEnd()).filter(l => l.length > 0);
+  if (!lines.length) return [];
+
+  // Detect TSV table: first line has ≥2 tabs → columnar format
+  const firstTabs = (lines[0].match(/\t/g) || []).length;
+  if (firstTabs >= 2) {
+    // Columnar TSV: expression | synonym | meaning | sentence
+    return lines.map(line => {
+      const [expression = '', synonyms = '', meaning = '', example = ''] = line.split('\t').map(s => s.trim());
+      return { expression, synonyms, meaning, example, emoji: '', explanation: '', ipa: '', link: '' };
+    }).filter(c => c.expression);
+  }
+
+  // Key-value format: "Label\tValue" blocks separated by blank lines
   const PASTE_ALIASES = {
     expression: ['word', 'expression', 'expresion', 'phrase', 'frase'],
     synonyms:   ['synonym', 'sinonimo'],
     meaning:    ['meaning', 'significado', 'definition', 'definicion'],
     example:    ['sentence', 'example', 'ejemplo', 'context', 'uso'],
   };
-
   function matchPasteField(label) {
     const h = removeAccents(label);
     for (const [field, aliases] of Object.entries(PASTE_ALIASES)) {
@@ -526,20 +541,15 @@ function parsePasteText(text) {
     }
     return null;
   }
-
   const blocks = text.trim().split(/\n{2,}/);
   const cards = [];
-
   for (const block of blocks) {
     const card = { expression: '', meaning: '', synonyms: '', emoji: '', explanation: '', example: '', ipa: '', link: '' };
     for (const line of block.split('\n')) {
-      const sep = line.indexOf('\t') !== -1 ? '\t' : '    ';
-      const idx = line.indexOf(sep);
+      const idx = line.indexOf('\t');
       if (idx === -1) continue;
-      const label = line.slice(0, idx).trim();
-      const value = line.slice(idx).trim();
-      const field = matchPasteField(label);
-      if (field) card[field] = value;
+      const field = matchPasteField(line.slice(0, idx));
+      if (field) card[field] = line.slice(idx + 1).trim();
     }
     if (card.expression) cards.push(card);
   }
