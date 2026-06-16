@@ -521,7 +521,8 @@ dropZone.addEventListener('drop', e => {
 // Paste input — one card per line
 // Supports: CSV (comma), pipe |, or tab separators
 // Handles quoted fields (CSV standard: "value with, comma")
-// Columns: expression, synonym, meaning, example sentence
+// Columns: Term, Synonym, Meaning, More Info, Sentence in Context, Image Link
+// IPA embedded in the Term (e.g. "word /ipa/") is auto-extracted
 // Header rows are skipped automatically
 function parseCsvLine(line) {
   const fields = [];
@@ -551,13 +552,21 @@ function parsePasteText(text) {
     const parts = parseCsvLine(line);
     if (parts.length < 2) continue;
 
-    const [expression = '', synonyms = '', meaning = '', explanation = '', example = ''] = parts;
+    let [expression = '', synonyms = '', meaning = '', explanation = '', example = '', link = ''] = parts;
 
     // Skip header rows
     const firstWord = removeAccents(expression).split(/[\s/]+/)[0];
     if (HEADER_WORDS.some(h => firstWord === h)) continue;
 
-    if (expression) cards.push({ expression, synonyms, meaning, explanation, example, emoji: '', ipa: '', link: '' });
+    // Extract IPA embedded in the term, e.g. "stunned /stʌnd/"
+    let ipa = '';
+    const ipaMatch = expression.match(/\/[^/]+\//);
+    if (ipaMatch) {
+      ipa = ipaMatch[0].trim();
+      expression = expression.replace(ipaMatch[0], '').trim();
+    }
+
+    if (expression) cards.push({ expression, synonyms, meaning, explanation, example, emoji: '', ipa, link });
   }
   return cards;
 }
