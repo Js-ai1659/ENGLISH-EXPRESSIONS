@@ -277,7 +277,11 @@ function loadCards(cards) {
   completionScreen.hidden = true;
   appMain.hidden = false;
   btnSearch.hidden = false;
+  btnClear.hidden = false;
   updateSavedBtn();
+
+  // Persist last loaded deck
+  try { localStorage.setItem('flashcards_last_deck', JSON.stringify(cards)); } catch {}
 
   renderMode();
 }
@@ -574,9 +578,17 @@ btnClear.addEventListener('click', () => {
   completionScreen.hidden = true;
   welcomeSection.hidden = false;
   btnSearch.hidden = true;
+  btnClear.hidden = true;
   searchBar.hidden = true;
   pasteInput.value = '';
+  try { localStorage.removeItem('flashcards_last_deck'); } catch {}
 });
+
+// Restore last deck on page load
+try {
+  const last = JSON.parse(localStorage.getItem('flashcards_last_deck'));
+  if (last && last.length) loadCards(last);
+} catch {}
 
 // Mode selector
 modeBtns.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));

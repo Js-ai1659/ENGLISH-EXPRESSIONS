@@ -76,6 +76,13 @@ body {
 .btn-upload { background: var(--accent); color: #fff; }
 .btn-upload:hover { background: var(--accent-hover); }
 
+.btn-clear {
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.btn-clear:hover { background: var(--border); }
+
 .btn-saved {
   background: var(--surface2);
   color: #f59e0b;
@@ -243,11 +250,17 @@ body {
   width: 100%;
   border: 2px dashed var(--border);
   border-radius: var(--radius);
-  padding: 3rem 2rem;
+  padding: 1rem 1.5rem;
   text-align: center;
   transition: border-color var(--transition), background var(--transition);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
 }
+.drop-zone .drop-icon { font-size: 1.4rem; margin: 0; }
+.drop-zone p { margin: 0; font-size: 0.9rem; color: var(--text-muted); }
 
 .drop-zone.drag-over {
   border-color: var(--accent);
