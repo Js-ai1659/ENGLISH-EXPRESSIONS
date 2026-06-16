@@ -15,6 +15,7 @@
       <h1>English Flashcards</h1>
     </div>
     <div class="header-right">
+      <button class="btn btn-clear" id="btn-clear" title="Limpiar tarjetas" hidden>🗑 Limpiar</button>
       <button class="btn btn-saved" id="btn-saved" title="Ver tarjetas pendientes" hidden>★ Pendientes</button>
       <button class="btn btn-search" id="btn-search" title="Buscar tarjeta" hidden>🔍</button>
       <label class="btn btn-upload" title="Importar archivo Excel (.xlsx / .xls)">
@@ -28,12 +29,7 @@
   <section class="welcome-section" id="welcome-section">
     <div class="drop-zone" id="drop-zone">
       <div class="drop-icon">📊</div>
-      <h2>Sube tu archivo Excel</h2>
-      <p>Arrastra y suelta aquí, o usa el botón <strong>Importar Excel</strong></p>
-      <p class="hint">
-        Columnas esperadas (en cualquier orden):<br />
-        <code>WORD-EXPRESSION · EMOJI · MEANING · EXPLANATION · SYNONYMS · EXAMPLE_SENTENCE · IPA · LINK</code>
-      </p>
+      <p>Arrastra un Excel aquí o usa <strong>Importar Excel</strong></p>
     </div>
 
     <div class="paste-section">
@@ -150,7 +146,6 @@
     <!-- BOTTOM CONTROLS -->
     <div class="bottom-controls">
       <button class="btn btn-ghost" id="btn-restart">🔄 Reiniciar</button>
-      <button class="btn btn-ghost" id="btn-clear">🗑 Limpiar</button>
     </div>
 
   </main>
