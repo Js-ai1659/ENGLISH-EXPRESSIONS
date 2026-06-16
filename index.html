@@ -34,7 +34,7 @@
 
     <div class="paste-section">
       <p class="paste-label">O pega tus expresiones directamente (CSV):</p>
-      <p class="paste-hint">Term, Synonym, Spanish Meaning, More Info, Sentence in Context, Image Link</p>
+      <p class="paste-hint">Acepta encabezados en cualquier orden, p. ej.: WORD-EXPRESSION, MEANING, INFORMATION, SYNONYMS, EXAMPLE_SENTENCE, LINK, IPA, TYPE, THEME</p>
       <textarea id="paste-input" placeholder="stunned /stʌnd/,&quot;shocked, amazed&quot;,&quot;aturdido, asombrado&quot;,Past participle of stun,Spain stunned by Cape Verde.,https://example.com/image.jpg" rows="7"></textarea>
       <button class="btn btn-paste" id="btn-paste">Cargar tarjetas</button>
     </div>
@@ -113,6 +113,14 @@
                 <div class="back-item" id="back-ipa">
                   <span class="back-label">IPA</span>
                   <p class="back-value ipa-value" id="val-ipa"></p>
+                </div>
+                <div class="back-item" id="back-type">
+                  <span class="back-label">Type</span>
+                  <p class="back-value" id="val-type"></p>
+                </div>
+                <div class="back-item" id="back-theme">
+                  <span class="back-label">Theme</span>
+                  <p class="back-value" id="val-theme"></p>
                 </div>
               </div>
             </div>

@@ -143,11 +143,15 @@ const valExplanation = $('val-explanation');
 const valSynonyms    = $('val-synonyms');
 const valExample     = $('val-example');
 const valIpa         = $('val-ipa');
+const valType        = $('val-type');
+const valTheme       = $('val-theme');
 const backMeaning    = $('back-meaning');
 const backExplanation = $('back-explanation');
 const backSynonyms   = $('back-synonyms');
 const backExample    = $('back-example');
 const backIpa        = $('back-ipa');
+const backType       = $('back-type');
+const backTheme      = $('back-theme');
 
 const btnPrev      = $('btn-prev');
 const btnNext      = $('btn-next');
@@ -177,7 +181,9 @@ const ALIASES = {
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
-  link:        ['link', 'enlace', 'url', 'imagen', 'google', 'image_link', 'imagelink']
+  link:        ['link', 'enlace', 'url', 'imagen', 'google', 'image_link', 'imagelink'],
+  type:        ['type', 'tipo'],
+  theme:       ['theme', 'tema', 'topic']
 };
 
 function removeAccents(s) {
@@ -248,6 +254,8 @@ function parseExcel(file) {
             synonyms:    String(row[colIdx.synonyms]     || '').trim(),
             example:     String(row[colIdx.example]      || '').trim(),
             ipa:         String(row[colIdx.ipa]          || '').trim(),
+            type:        String(row[colIdx.type]         || '').trim(),
+            theme:       String(row[colIdx.theme]        || '').trim(),
             link
           };
         })
@@ -337,12 +345,16 @@ function renderFlipCard() {
   valSynonyms.textContent    = card.synonyms    || '—';
   valExample.textContent     = card.example     || '—';
   valIpa.textContent         = card.ipa         || '—';
+  valType.textContent        = card.type        || '—';
+  valTheme.textContent       = card.theme       || '—';
 
   backMeaning.hidden     = !card.meaning;
   backExplanation.hidden = !card.explanation;
   backSynonyms.hidden    = !card.synonyms;
   backExample.hidden     = !card.example;
   backIpa.hidden         = !card.ipa;
+  backType.hidden        = !card.type;
+  backTheme.hidden       = !card.theme;
 
   btnPrev.disabled = state.currentIndex === 0;
   btnNext.disabled = state.currentIndex === state.cards.length - 1;
@@ -521,9 +533,13 @@ dropZone.addEventListener('drop', e => {
 // Paste input — one card per line
 // Supports: CSV (comma), pipe |, or tab separators
 // Handles quoted fields (CSV standard: "value with, comma")
-// Columns: Term, Synonym, Meaning, More Info, Sentence in Context, Image Link
-// IPA embedded in the Term (e.g. "word /ipa/") is auto-extracted
-// Header rows are skipped automatically
+// First line, if recognized as a header (matches known column names,
+// in any order — e.g. WORD-EXPRESSION, MEANING, INFORMATION, SYNONYMS,
+// EXAMPLE_SENTENCE, LINK, IPA, TYPE, THEME), defines the column mapping.
+// Without a header row, falls back to the legacy fixed order:
+// Term, Synonym, Meaning, More Info, Sentence in Context, Image Link.
+// IPA embedded in the expression itself (e.g. "word /ipa/") is auto-extracted
+// when no dedicated IPA column is present.
 function parseCsvLine(line) {
   const fields = [];
   let cur = '', inQuote = false;
@@ -542,31 +558,57 @@ function parseCsvLine(line) {
   return fields;
 }
 
+const LEGACY_COL_ORDER = ['expression', 'synonyms', 'meaning', 'explanation', 'example', 'link'];
+
 function parsePasteText(text) {
-  const HEADER_WORDS = ['term', 'word', 'expression', 'expresion', 'synonym', 'meaning', 'sentence', 'more'];
   const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0);
   if (!lines.length) return [];
 
+  const firstParts = parseCsvLine(lines[0]);
+  const headerMap = {};
+  firstParts.forEach((h, i) => {
+    const field = matchField(h);
+    if (field && !(field in headerMap)) headerMap[field] = i;
+  });
+  const hasHeader = headerMap.expression !== undefined && Object.keys(headerMap).length >= 2;
+
+  const colIdx = hasHeader
+    ? headerMap
+    : LEGACY_COL_ORDER.reduce((acc, field, i) => { acc[field] = i; return acc; }, {});
+  const dataLines = hasHeader ? lines.slice(1) : lines;
+
+  const field = (parts, name) => (colIdx[name] !== undefined ? (parts[colIdx[name]] || '').trim() : '');
+
   const cards = [];
-  for (const line of lines) {
+  for (const line of dataLines) {
     const parts = parseCsvLine(line);
     if (parts.length < 2) continue;
 
-    let [expression = '', synonyms = '', meaning = '', explanation = '', example = '', link = ''] = parts;
+    let expression = field(parts, 'expression');
+    if (!expression) continue;
 
-    // Skip header rows
-    const firstWord = removeAccents(expression).split(/[\s/]+/)[0];
-    if (HEADER_WORDS.some(h => firstWord === h)) continue;
-
-    // Extract IPA embedded in the term, e.g. "stunned /stʌnd/"
-    let ipa = '';
-    const ipaMatch = expression.match(/\/[^/]+\//);
-    if (ipaMatch) {
-      ipa = ipaMatch[0].trim();
-      expression = expression.replace(ipaMatch[0], '').trim();
+    let ipa = field(parts, 'ipa');
+    if (!ipa) {
+      // Extract IPA embedded in the expression itself, e.g. "stunned /stʌnd/"
+      const ipaMatch = expression.match(/\/[^/]+\//);
+      if (ipaMatch) {
+        ipa = ipaMatch[0].trim();
+        expression = expression.replace(ipaMatch[0], '').trim();
+      }
     }
 
-    if (expression) cards.push({ expression, synonyms, meaning, explanation, example, emoji: '', ipa, link });
+    cards.push({
+      expression,
+      synonyms:    field(parts, 'synonyms'),
+      meaning:     field(parts, 'meaning'),
+      explanation: field(parts, 'explanation'),
+      example:     field(parts, 'example'),
+      link:        field(parts, 'link'),
+      type:        field(parts, 'type'),
+      theme:       field(parts, 'theme'),
+      emoji: '',
+      ipa
+    });
   }
   return cards;
 }
