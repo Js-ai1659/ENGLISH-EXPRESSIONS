@@ -143,15 +143,11 @@ const valExplanation = $('val-explanation');
 const valSynonyms    = $('val-synonyms');
 const valExample     = $('val-example');
 const valIpa         = $('val-ipa');
-const valType        = $('val-type');
-const valTheme       = $('val-theme');
 const backMeaning    = $('back-meaning');
 const backExplanation = $('back-explanation');
 const backSynonyms   = $('back-synonyms');
 const backExample    = $('back-example');
 const backIpa        = $('back-ipa');
-const backType       = $('back-type');
-const backTheme      = $('back-theme');
 
 const btnPrev      = $('btn-prev');
 const btnNext      = $('btn-next');
@@ -182,8 +178,6 @@ const ALIASES = {
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
   link:        ['link', 'enlace', 'url', 'imagen', 'google', 'image_link', 'imagelink'],
-  type:        ['type', 'tipo'],
-  theme:       ['theme', 'tema', 'topic']
 };
 
 function removeAccents(s) {
@@ -254,8 +248,6 @@ function parseExcel(file) {
             synonyms:    String(row[colIdx.synonyms]     || '').trim(),
             example:     String(row[colIdx.example]      || '').trim(),
             ipa:         String(row[colIdx.ipa]          || '').trim(),
-            type:        String(row[colIdx.type]         || '').trim(),
-            theme:       String(row[colIdx.theme]        || '').trim(),
             link
           };
         })
@@ -345,16 +337,12 @@ function renderFlipCard() {
   valSynonyms.textContent    = card.synonyms    || '—';
   valExample.textContent     = card.example     || '—';
   valIpa.textContent         = card.ipa         || '—';
-  valType.textContent        = card.type        || '—';
-  valTheme.textContent       = card.theme       || '—';
 
   backMeaning.hidden     = !card.meaning;
   backExplanation.hidden = !card.explanation;
   backSynonyms.hidden    = !card.synonyms;
   backExample.hidden     = !card.example;
   backIpa.hidden         = !card.ipa;
-  backType.hidden        = !card.type;
-  backTheme.hidden       = !card.theme;
 
   btnPrev.disabled = state.currentIndex === 0;
   btnNext.disabled = state.currentIndex === state.cards.length - 1;
@@ -598,27 +586,37 @@ function parsePasteText(text) {
     }
 
     let link = field(parts, 'link');
-    // Strip any raw URLs embedded in the expression (e.g. "word — https://...")
-    const urlRegex = /https?:\/\/[^\s,]+/g;
-    const urlsInExpr = expression.match(urlRegex);
-    if (urlsInExpr) {
-      if (!link) link = urlsInExpr[0];
-      // Remove URLs and surrounding em-dashes / whitespace from expression
-      expression = expression.replace(/\s*—\s*https?:\/\/[^\s,]+/g, '')
-                             .replace(/https?:\/\/[^\s,]+/g, '')
-                             .replace(/\s*—\s*img:/g, '')
-                             .trim();
+
+    // Strip URLs embedded in any text field and collect the first one as link
+    function stripUrls(text) {
+      const urls = text.match(/https?:\/\/[^\s,|]+/g);
+      if (!urls) return { clean: text, url: null };
+      let clean = text
+        .replace(/\s*—\s*img:/g, '')
+        .replace(/\s*—\s*https?:\/\/[^\s,|]+/g, '')
+        .replace(/https?:\/\/[^\s,|]+/g, '')
+        .trim()
+        .replace(/\s*[—|]\s*$/, '')
+        .trim();
+      return { clean, url: urls[0] };
     }
+
+    const exprStripped = stripUrls(expression);
+    if (!link && exprStripped.url) link = exprStripped.url;
+    expression = exprStripped.clean;
+
+    let explanation = field(parts, 'explanation');
+    const explStripped = stripUrls(explanation);
+    if (!link && explStripped.url) link = explStripped.url;
+    explanation = explStripped.clean;
 
     cards.push({
       expression,
       synonyms:    field(parts, 'synonyms'),
       meaning:     field(parts, 'meaning'),
-      explanation: field(parts, 'explanation'),
+      explanation,
       example:     field(parts, 'example'),
       link,
-      type:        field(parts, 'type'),
-      theme:       field(parts, 'theme'),
       emoji: '',
       ipa
     });
