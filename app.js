@@ -597,13 +597,26 @@ function parsePasteText(text) {
       }
     }
 
+    let link = field(parts, 'link');
+    // Strip any raw URLs embedded in the expression (e.g. "word — https://...")
+    const urlRegex = /https?:\/\/[^\s,]+/g;
+    const urlsInExpr = expression.match(urlRegex);
+    if (urlsInExpr) {
+      if (!link) link = urlsInExpr[0];
+      // Remove URLs and surrounding em-dashes / whitespace from expression
+      expression = expression.replace(/\s*—\s*https?:\/\/[^\s,]+/g, '')
+                             .replace(/https?:\/\/[^\s,]+/g, '')
+                             .replace(/\s*—\s*img:/g, '')
+                             .trim();
+    }
+
     cards.push({
       expression,
       synonyms:    field(parts, 'synonyms'),
       meaning:     field(parts, 'meaning'),
       explanation: field(parts, 'explanation'),
       example:     field(parts, 'example'),
-      link:        field(parts, 'link'),
+      link,
       type:        field(parts, 'type'),
       theme:       field(parts, 'theme'),
       emoji: '',
