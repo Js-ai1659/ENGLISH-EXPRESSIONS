@@ -173,7 +173,7 @@ const toast        = $('toast');
    ============================================================ */
 const ALIASES = {
   expression:  ['expression', 'expresion', 'word', 'palabra', 'phrase', 'frase', 'term', 'termino'],
-  emoji:       ['emoji', 'emoticono', 'icon', 'icono', 'imagen', 'image'],
+  emoji:       ['emoji', 'emoticono', 'icon', 'icono'],
   meaning:     ['meaning', 'significado', 'definition', 'definicion'],
   explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle', 'information', 'informacion', 'info'],
   collocations: ['collocation', 'colocacion', 'collocations', 'colocaciones'],
@@ -181,7 +181,7 @@ const ALIASES = {
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
-  link:        ['link', 'enlace', 'url', 'imagen', 'google', 'image_link', 'imagelink'],
+  link:        ['link', 'enlace', 'url', 'imagen', 'image', 'google', 'image_link', 'imagelink'],
 };
 
 function removeAccents(s) {
