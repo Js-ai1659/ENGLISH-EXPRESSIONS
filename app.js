@@ -142,12 +142,12 @@ const valMeaning     = $('val-meaning');
 const valExplanation = $('val-explanation');
 const valSynonyms    = $('val-synonyms');
 const valExample     = $('val-example');
-const valIpa         = $('val-ipa');
-const backMeaning    = $('back-meaning');
-const backExplanation = $('back-explanation');
-const backSynonyms   = $('back-synonyms');
-const backExample    = $('back-example');
-const backIpa        = $('back-ipa');
+const backMeaning      = $('back-meaning');
+const backExplanation  = $('back-explanation');
+const backCollocations = $('back-collocations');
+const valCollocations  = $('val-collocations');
+const backSynonyms     = $('back-synonyms');
+const backExample      = $('back-example');
 
 const btnPrev      = $('btn-prev');
 const btnNext      = $('btn-next');
@@ -174,6 +174,7 @@ const ALIASES = {
   emoji:       ['emoji', 'emoticono', 'icon', 'icono', 'imagen', 'image'],
   meaning:     ['meaning', 'significado', 'definition', 'definicion'],
   explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle', 'information', 'informacion', 'info'],
+  collocations: ['collocation', 'colocacion', 'collocations', 'colocaciones'],
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
@@ -247,7 +248,8 @@ function parseExcel(file) {
             explanation: String(row[colIdx.explanation]  || '').trim(),
             synonyms:    String(row[colIdx.synonyms]     || '').trim(),
             example:     String(row[colIdx.example]      || '').trim(),
-            ipa:         String(row[colIdx.ipa]          || '').trim(),
+            collocations: String(row[colIdx.collocations] || '').trim(),
+            ipa:          String(row[colIdx.ipa]          || '').trim(),
             link
           };
         })
@@ -332,17 +334,17 @@ function renderFlipCard() {
     frontLinkBtn.hidden = true;
   }
 
-  valMeaning.textContent     = card.meaning     || '—';
-  valExplanation.textContent = card.explanation || '—';
-  valSynonyms.textContent    = card.synonyms    || '—';
-  valExample.textContent     = card.example     || '—';
-  valIpa.textContent         = card.ipa         || '—';
+  valMeaning.textContent        = card.meaning        || '—';
+  valExplanation.textContent    = card.explanation    || '—';
+  valCollocations.textContent   = card.collocations   || '—';
+  valSynonyms.textContent       = card.synonyms       || '—';
+  valExample.textContent        = card.example        || '—';
 
-  backMeaning.hidden     = !card.meaning;
-  backExplanation.hidden = !card.explanation;
-  backSynonyms.hidden    = !card.synonyms;
-  backExample.hidden     = !card.example;
-  backIpa.hidden         = !card.ipa;
+  backMeaning.hidden      = !card.meaning;
+  backExplanation.hidden  = !card.explanation;
+  backCollocations.hidden = !card.collocations;
+  backSynonyms.hidden     = !card.synonyms;
+  backExample.hidden      = !card.example;
 
   btnPrev.disabled = state.currentIndex === 0;
   btnNext.disabled = state.currentIndex === state.cards.length - 1;
@@ -612,10 +614,11 @@ function parsePasteText(text) {
 
     cards.push({
       expression,
-      synonyms:    field(parts, 'synonyms'),
-      meaning:     field(parts, 'meaning'),
+      synonyms:     field(parts, 'synonyms'),
+      meaning:      field(parts, 'meaning'),
       explanation,
-      example:     field(parts, 'example'),
+      collocations: field(parts, 'collocations'),
+      example:      field(parts, 'example'),
       link,
       emoji: '',
       ipa
