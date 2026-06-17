@@ -144,10 +144,12 @@ const valSynonyms    = $('val-synonyms');
 const valExample     = $('val-example');
 const backMeaning      = $('back-meaning');
 const backExplanation  = $('back-explanation');
-const backCollocations = $('back-collocations');
-const valCollocations  = $('val-collocations');
-const backSynonyms     = $('back-synonyms');
-const backExample      = $('back-example');
+const backCollocations  = $('back-collocations');
+const valCollocations   = $('val-collocations');
+const backSynonyms      = $('back-synonyms');
+const backExample       = $('back-example');
+const backMicrolesson   = $('back-microlesson');
+const valMicrolesson    = $('val-microlesson');
 
 const btnPrev      = $('btn-prev');
 const btnNext      = $('btn-next');
@@ -175,6 +177,7 @@ const ALIASES = {
   meaning:     ['meaning', 'significado', 'definition', 'definicion'],
   explanation: ['explanation', 'explicacion', 'description', 'descripcion', 'detail', 'detalle', 'information', 'informacion', 'info'],
   collocations: ['collocation', 'colocacion', 'collocations', 'colocaciones'],
+  microlesson:  ['micro-lesson', 'microlesson', 'micro lesson', 'microleccion', 'micro'],
   synonyms:    ['synonym', 'sinonimo', 'synonyms', 'sinonimos', 'similar', 'related'],
   example:     ['example', 'ejemplo', 'sentence', 'oracion', 'uso', 'usage'],
   ipa:         ['ipa', 'pronunciation', 'pronunciacion', 'phonetic', 'fonetica'],
@@ -248,8 +251,9 @@ function parseExcel(file) {
             explanation: String(row[colIdx.explanation]  || '').trim(),
             synonyms:    String(row[colIdx.synonyms]     || '').trim(),
             example:     String(row[colIdx.example]      || '').trim(),
-            collocations: String(row[colIdx.collocations] || '').trim(),
-            ipa:          String(row[colIdx.ipa]          || '').trim(),
+            collocations: String(row[colIdx.collocations]  || '').trim(),
+            microlesson:  String(row[colIdx.microlesson]  || '').trim(),
+            ipa:          String(row[colIdx.ipa]           || '').trim(),
             link
           };
         })
@@ -340,11 +344,14 @@ function renderFlipCard() {
   valSynonyms.textContent       = card.synonyms       || '—';
   valExample.textContent        = card.example        || '—';
 
-  backMeaning.hidden      = !card.meaning;
-  backExplanation.hidden  = !card.explanation;
-  backCollocations.hidden = !card.collocations;
-  backSynonyms.hidden     = !card.synonyms;
-  backExample.hidden      = !card.example;
+  valMicrolesson.textContent    = card.microlesson    || '—';
+
+  backMeaning.hidden       = !card.meaning;
+  backExplanation.hidden   = !card.explanation;
+  backCollocations.hidden  = !card.collocations;
+  backSynonyms.hidden      = !card.synonyms;
+  backExample.hidden       = !card.example;
+  backMicrolesson.hidden   = !card.microlesson;
 
   btnPrev.disabled = state.currentIndex === 0;
   btnNext.disabled = state.currentIndex === state.cards.length - 1;
@@ -619,6 +626,7 @@ function parsePasteText(text) {
       explanation,
       collocations: field(parts, 'collocations'),
       example:      field(parts, 'example'),
+      microlesson:  field(parts, 'microlesson'),
       link,
       emoji: '',
       ipa
