@@ -332,7 +332,12 @@ function renderFlipCard() {
   cardIpaFront.hidden        = !card.ipa;
 
   if (card.link) {
-    frontLinkBtn.href   = card.link;
+    let href = card.link;
+    // If it's a Google Search URL without the image-search parameter, add it
+    if (href.includes('google.com/search') && !href.includes('tbm=isch')) {
+      href += (href.includes('?') ? '&' : '?') + 'tbm=isch';
+    }
+    frontLinkBtn.href   = href;
     frontLinkBtn.hidden = false;
   } else {
     frontLinkBtn.hidden = true;
